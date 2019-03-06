@@ -1,0 +1,13 @@
+#IDEA files
+out/
+.idea/
+
+#Gradle files
+.gradle/
+build/
+
+#Thread dumps
+.attach*
+
+#Runtime
+music/

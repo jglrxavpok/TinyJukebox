@@ -48,7 +48,11 @@ object MusicPlayer: Thread("Music Player") {
                             currentMusic = null
                         }
                     }
+                } else {
+                    TinyJukebox.sendPlayerUpdateIfNecessary()
                 }
+            } else {
+                TinyJukebox.sendPlayerUpdateIfNecessary()
             }
 
 

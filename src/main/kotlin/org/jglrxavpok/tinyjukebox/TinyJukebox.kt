@@ -96,7 +96,8 @@ object TinyJukebox {
         // send update if necessary
         if(hasUpdated) {
             if(clip != null) {
-                websocket.sendPlayerUpdate(true, MusicPlayer.currentMusic!!.name, clip.microsecondPosition.toMinutesAndSeconds(), clip.microsecondLength.toMinutesAndSeconds())
+                val percent = clip.microsecondPosition.toDouble()/clip.microsecondLength.toDouble()
+                websocket.sendPlayerUpdate(true, MusicPlayer.currentMusic!!.name, clip.microsecondPosition.toMinutesAndSeconds(), clip.microsecondLength.toMinutesAndSeconds(), percent)
             } else {
                 // not playing anything
                 websocket.sendPlayerUpdate(false)

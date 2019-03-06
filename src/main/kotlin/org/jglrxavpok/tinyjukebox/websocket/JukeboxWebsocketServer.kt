@@ -60,14 +60,16 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
      * @param name name of the music currently playing
      * @param position where are we in the playback? (Format is: <minutes>:<seconds>)
      * @param duration how long is the music? (Format is: <minutes>:<seconds>)
+     * @param percent how much of the music has been played?
      */
-    fun sendPlayerUpdate(actuallyPlaying: Boolean, name: String? = null, position: String? = null, duration: String? = null) {
+    fun sendPlayerUpdate(actuallyPlaying: Boolean, name: String? = null, position: String? = null, duration: String? = null, percent: Double? = null) {
         val message = StringBuilder("playerUpdate")
         message.append('\n').append(actuallyPlaying)
         if(actuallyPlaying) {
             message.append('\n').append(name)
             message.append('\n').append(position)
             message.append('\n').append(duration)
+            message.append('\n').append(percent)
         }
         broadcast(message.toString())
     }

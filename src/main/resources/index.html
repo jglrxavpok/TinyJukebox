@@ -65,7 +65,14 @@
                         var name = lines[2];
                         var currentTime = lines[3];
                         var totalTime = lines[4];
-                        playingContainer.html(`<h1>Currently playing: <i>${name}</i> (${currentTime} - ${totalTime})</h1>`);
+                        var percent = Math.round(lines[5]*1000)/10;
+                        console.log(percent);
+                        playingContainer.html(`
+                            <h1>Currently playing: <i>${name}</i> (${currentTime} - ${totalTime})</h1>
+                            <div class="progress">
+                              <div class="progress-bar" role="progressbar" style="width: ${percent}%" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            `);
                     } else {
                         playingContainer.html("<h1>Not playing anything</h1>")
                     }

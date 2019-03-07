@@ -8,9 +8,14 @@ import java.io.PrintWriter
 import java.net.Socket
 import java.nio.file.Paths
 
-
 class HttpHandler(val client: Socket): Thread("Client $client") {
 
+    companion object {
+        val quotes by lazy {
+            val text = HttpHandler::class.java.getResourceAsStream("/quotes.txt")?.reader()?.readText() ?: "No quotes :c"
+            text.split('\n')
+        }
+    }
     val rootPath = Paths.get("/")
     val writer = PrintWriter(OutputStreamWriter(client.getOutputStream()))
     val reader = BufferedReader(InputStreamReader(client.getInputStream()))
@@ -61,6 +66,16 @@ class HttpHandler(val client: Socket): Thread("Client $client") {
     }
 
     fun get(location: String) {
+        // special cases
+        when(location) {
+            "/quote" -> {
+                htmlError(200, "Content-Type: text/plain")
+                writer.println(quotes.random())
+                return
+            }
+        }
+
+        // simply serving pages
         val newPath = Paths.get(location)
         val valid = newPath.startsWith(rootPath) // the path MUST be within the server
         if(!valid) {
@@ -83,8 +98,11 @@ class HttpHandler(val client: Socket): Thread("Client $client") {
         writer.println(html)
     }
 
-    fun htmlError(errorCode: Int) {
+    fun htmlError(errorCode: Int, vararg headerParameters: String) {
         writer.println("HTTP/1.1 $errorCode ${htmlErrorCodeToName[errorCode]}")
+        for(param in headerParameters) {
+            writer.println(param)
+        }
         writer.println("")
     }
 

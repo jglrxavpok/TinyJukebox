@@ -6,10 +6,12 @@ import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.net.Socket
+import java.nio.file.Paths
 
 
 class HttpHandler(val client: Socket): Thread("Client $client") {
 
+    val rootPath = Paths.get("/")
     val writer = PrintWriter(OutputStreamWriter(client.getOutputStream()))
     val reader = BufferedReader(InputStreamReader(client.getInputStream()))
 
@@ -59,16 +61,25 @@ class HttpHandler(val client: Socket): Thread("Client $client") {
     }
 
     fun get(location: String) {
-        if(location != "/") {
-            htmlError(404)
+        val newPath = Paths.get(location)
+        val valid = newPath.startsWith(rootPath) // the path MUST be within the server
+        if(!valid) {
+            println(">> $newPath - $rootPath")
+            serve("403")
             return
         }
-        htmlError(200)
-        serve("index")
+        serve(
+            if(location == "/") {
+                "/index.html"
+            } else {
+                location
+            }
+        )
     }
 
     private fun serve(pageName: String) {
-        val html = javaClass.getResourceAsStream("/$pageName.html").reader().readText()
+        val html = javaClass.getResourceAsStream(pageName)?.reader()?.readText() ?: return htmlError(404)
+        htmlError(200)
         writer.println(html)
     }
 

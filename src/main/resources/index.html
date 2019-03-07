@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
     <head>
         <title>
             TinyJukebox
@@ -8,9 +8,12 @@
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     </head>
     <body>
-        <h1>
+        <h1 class="text-center">
             TinyJukebox - INTech RTC
         </h1>
+        <div class="text-center" id="quote">
+
+        </div>
         <div class="playingContainer" id="playingContainer">
             <!-- The playingContainer will be filled by JS code here !-->
         </div>
@@ -33,127 +36,5 @@
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-
-    <script type="text/javascript">
-        var queueContainer = $("#queueContainer");
-        var playingContainer = $("#playingContainer");
-        // TODO: configurable port
-        var socket = new WebSocket("ws://"+window.location.hostname+":8887");
-        console.log("Socket addr is "+"ws://"+window.location.hostname+":8887/");
-
-        socket.onopen = function (ev) {
-            queueContainer.text("Connected!");
-        };
-
-        socket.onmessage = function (ev) {
-            console.log(ev.data);
-            var lines = ev.data.split("\n");
-            console.log(lines[0]);
-            switch (lines[0]) {
-                case "queue":
-                    var queueHTML = "<ol>";
-                    for (let i = 1; i < lines.length; i++) {
-                        queueHTML += "<li><i>"+lines[i]+"</i></li>";
-                    }
-                    queueHTML += "</ol>";
-                    queueContainer.html(queueHTML);
-                    break;
-
-                case "playerUpdate":
-                    var actuallyPlaying = lines[1] === "true";
-                    if(actuallyPlaying) {
-                        var name = lines[2];
-                        var currentTime = lines[3];
-                        var totalTime = lines[4];
-                        var percent = Math.round(lines[5]*1000)/10;
-                        console.log(percent);
-                        playingContainer.html(`
-                            <h1>Currently playing: <i>${name}</i> (${currentTime} - ${totalTime})</h1>
-                            <div class="progress">
-                              <div class="progress-bar bg-success" role="progressbar" style="width: ${percent}%" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            `);
-                    } else {
-                        playingContainer.html("<h1>Not playing anything</h1>")
-                    }
-                    break;
-            }
-        };
-
-        socket.onerror = function (ev) {
-            queueContainer.text("Error: "+ev.data);
-        };
-
-        function initHttpRequest(id) {
-            var xhttp = new XMLHttpRequest();
-            xhttp.upload.addEventListener("progress", updateProgress, false);
-            xhttp.upload.addEventListener("load", transferComplete, false);
-            xhttp.upload.addEventListener("error", transferFailed, false);
-            xhttp.upload.addEventListener("abort", transferCanceled, false);
-
-            xhttp.open("POST", "/action/"+id, true);
-
-            var transferDiv = document.getElementById("transferProgress");
-            // downloading
-            function updateProgress (oEvent) {
-                if (oEvent.lengthComputable) {
-                    var percentComplete = oEvent.loaded / oEvent.total;
-                    var percent = Math.round(percentComplete*100);
-                    transferDiv.innerHTML =
-                        "<div class=\"progress\"><div class=\"progress-bar\" role=\"progressbar\" aria-valuenow=percent aria-valuemin=\"0\" aria-valuemax=\"100\"></div></div>";
-                } else {
-                    // Unknown size
-                }
-            }
-
-            function transferComplete(evt) {
-                transferDiv.innerHTML = "Complete!";
-            }
-
-            function transferFailed(evt) {
-                transferDiv.innerHTML = "Failed :(";
-            }
-
-            function transferCanceled(evt) {
-                transferDiv.innerHTML = "Cancelled";
-            }
-            return xhttp;
-        }
-
-        function empty() {
-            var xhttp = initHttpRequest("empty");
-            xhttp.setRequestHeader("Content-Type", "application/octet-stream");
-            xhttp.send(null);
-        }
-
-        if(document.getElementById("empty")) {
-            document.getElementById("empty").onclick = empty;
-        }
-
-        function upload() {
-            var xhttp = initHttpRequest("upload");
-            xhttp.setRequestHeader("Content-Type", "application/octet-stream");
-            var field = document.getElementById("musicFile");
-            var file = field.files[0];
-            xhttp.setRequestHeader("File-Size", file.size);
-            xhttp.setRequestHeader("File-Name", file.name);
-
-            var transferDiv = document.getElementById("transferProgress");
-            transferDiv.innerHTML = "Loading file...";
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var arrayBuffer = reader.result;
-                transferDiv.innerHTML = "Sending!";
-                xhttp.send(arrayBuffer+"\n");
-            };
-
-            reader.readAsDataURL(file);
-        }
-
-        if(document.getElementById("upload")) {
-            document.getElementById("upload").onclick = upload;
-        }
-
-
-    </script>
+    <script src="index.js"></script>
 </html>

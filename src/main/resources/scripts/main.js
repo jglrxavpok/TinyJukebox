@@ -1,16 +1,18 @@
+var pathsObject = {
+    jquery: 'https://code.jquery.com/jquery-3.3.1.min', // TODO: add option to use a local version? (in case TinyJukebox is only on a local network)
+    bootstrap: 'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min',
+};
 requirejs.config({
     //By default load any module IDs from scripts/
     baseUrl: 'scripts/',
     //except, for jQuery
-    paths: {
-        jquery: 'https://code.jquery.com/jquery-3.3.1.min' // TODO: add option to use a local version? (in case TinyJukebox is only on a local network)
-    }
+    paths: pathsObject
 });
 
-requirejs(['jquery', 'quote', 'config'],
-function   ($, quote, config) {
+requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about'],
+function   ($, bootstrap, quote, config, about) {
     quote.update(); // force the quote to appear right at the start
-    setInterval(quote.update, config.quoteChangePeriod); // TODO: configurable
+    setInterval(quote.update, config.quoteChangePeriod);
     var queueContainer = $("#queueContainer");
     var playingContainer = $("#playingContainer");
     // TODO: configurable port
@@ -24,7 +26,6 @@ function   ($, quote, config) {
     socket.onmessage = function (ev) {
         console.log(ev.data);
         var lines = ev.data.split("\n");
-        console.log(lines[0]);
         switch (lines[0]) {
             case "queue":
                 var queueHTML = "<ol>";

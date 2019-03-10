@@ -109,13 +109,14 @@ function   ($, bootstrap, quote, config, about) {
         document.getElementById("empty").onclick = empty;
     }
 
-    function upload() {
+    function uploadLocal() {
         var xhttp = initHttpRequest("upload");
         xhttp.setRequestHeader("Content-Type", "application/octet-stream");
         var field = document.getElementById("musicFile");
         var file = field.files[0];
         xhttp.setRequestHeader("File-Size", file.size);
         xhttp.setRequestHeader("File-Name", file.name);
+        xhttp.setRequestHeader("File-Source", "Local");
 
         var transferDiv = document.getElementById("transferProgress");
         transferDiv.innerHTML = "Loading file...";
@@ -129,8 +130,21 @@ function   ($, bootstrap, quote, config, about) {
         reader.readAsDataURL(file);
     }
 
-    if(document.getElementById("upload")) {
-        document.getElementById("upload").onclick = upload;
+    function uploadYoutube() {
+        var xhttp = initHttpRequest("upload");
+        xhttp.setRequestHeader("Content-Type", "application/octet-stream");
+        xhttp.setRequestHeader("File-Source", "Youtube");
+
+        var url = $("#youtubeLink").val();
+        xhttp.send(url+"\n");
+    }
+
+    if(document.getElementById("uploadLocal")) {
+        document.getElementById("uploadLocal").onclick = uploadLocal;
+    }
+
+    if(document.getElementById("uploadYoutube")) {
+        document.getElementById("uploadYoutube").onclick = uploadYoutube;
     }
 }
 );

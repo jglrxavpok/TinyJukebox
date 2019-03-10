@@ -1,10 +1,8 @@
 package org.jglrxavpok.tinyjukebox
 
-import html.HTML
 import java.io.*
-import java.lang.StringBuilder
+import java.net.URLEncoder
 import java.util.*
-import java.util.zip.DeflaterInputStream
 
 object WebActions {
 
@@ -48,100 +46,76 @@ object WebActions {
         }
     )
 
-    fun HTML.prepareScripts() {
-        val sourceCode = StringBuilder()
-        for(action in id2actionMap) {
-            val id = action.id
-            val reloadsPage = action.reloadsPage
-            // TODO: identifiants
-            val js = """
-                function $id() {
-                    var xhttp = new XMLHttpRequest();
-                    xhttp.upload.addEventListener("progress", updateProgress, false);
-                    xhttp.upload.addEventListener("load", transferComplete, false);
-                    xhttp.upload.addEventListener("error", transferFailed, false);
-                    xhttp.upload.addEventListener("abort", transferCanceled, false);
-
-                    xhttp.open("POST", "/action/$id", true);
-
-                    var transferDiv = document.getElementById("transferProgress");
-                    // downloading
-                    function updateProgress (oEvent) {
-                      if (oEvent.lengthComputable) {
-                        var percentComplete = oEvent.loaded / oEvent.total;
-                        var percent = Math.round(percentComplete*100);
-                        transferDiv.innerHTML =
-                        "<div class=\"progress\"><div class=\"progress-bar\" role=\"progressbar\" aria-valuenow=percent aria-valuemin=\"0\" aria-valuemax=\"100\"></div></div>";
-                      } else {
-                        // Unknown size
-                      }
-                    }
-
-                    function transferComplete(evt) {
-                        transferDiv.innerHTML = "Complete!";
-                        ${
-                            if(reloadsPage) { // reloads the page
-                                "document.location.reload(true); // reload the page"
-                            } else {
-                                "// does not reload the page"
-                            }
-                        }
-                    }
-
-                    function transferFailed(evt) {
-                      transferDiv.innerHTML = "Failed :(";
-                    }
-
-                    function transferCanceled(evt) {
-                      transferDiv.innerHTML = "Cancelled";
-                    }
-                    xhttp.setRequestHeader("Content-Type", "application/octet-stream");
-                    ${action.generateSend()}
-                }
-
-                if(document.getElementById("$id")) {
-                    document.getElementById("$id").onclick = $id;
-                }
-
-            """.trimIndent()
-            sourceCode.append(js).append("\n")
-        }
-        script("text/javascript", sourceCode.toString())
-    }
-
     private fun empty(length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
         TinyJukebox.emptyQueue()
     }
 
     private fun upload(length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
-        var readCount: Int
-        var totalCount = 0L
+        val fileSource = attributes["File-Source"]
+        val music: Music? = when(fileSource) {
+            "Local" -> uploadLocal(clientReader, attributes)
+            "Youtube" -> uploadYoutube(clientReader, attributes)
+            else -> null
+        }
+        music?.let {
+            TinyJukebox.addToQueue(it)
+        }
+    }
+
+    private fun uploadLocal(clientReader: BufferedReader, attributes: Map<String, String>): Music {
         val filename = attributes["File-Name"]!!
         val file = File("./music/$filename")
         if(!file.parentFile.exists()) {
             file.parentFile.mkdirs() // TODO check error
         }
         val target = BufferedOutputStream(FileOutputStream(file))
-        val buffer = ByteArray(1024*16) // TODO: configurable buffer size
 
         val line = clientReader.readLine()
         val input = Base64.getMimeDecoder().decode(line.substringAfter(";base64,"))
         target.write(input)
-/*        do {
-            readCount = input.read(buffer, 0, minOf(clientInput.available(), buffer.size))
-            if(readCount > 0) {
-                target.write(buffer)
-                totalCount += readCount.toLong()
-                println(">> $totalCount")
-            }
-        } while(readCount > 0)
-        println("read $totalCount - expected $length - diff is ${length-totalCount}")
- */       target.flush()
+        target.flush()
         target.close()
 
         println("file size=${file.length()}")
-        val music = Music(filename.substringBeforeLast("."), file)
-        TinyJukebox.addToQueue(music)
+        return Music(file.nameWithoutExtension, file)
+    }
+
+    private fun uploadYoutube(clientReader: BufferedReader, attributes: Map<String, String>): Music? {
+        val url = clientReader.readLine()
+        println("Attempting to read music from YT url: $url")
+        val ytExtractsFolder = File("./music/yt/")
+        if(!ytExtractsFolder.exists()) {
+            ytExtractsFolder.mkdirs()
+        }
+        val process = ProcessBuilder()
+        val tmpLogFile = File("./music/yt/tmp_${System.currentTimeMillis()}.log")
+        val ytdl = process.directory(ytExtractsFolder).command("youtube-dl", "-x", "--audio-format", "mp3", url)
+        println(ytdl.command().joinToString(" "))
+        ytdl.redirectOutput(tmpLogFile)
+        val exitStatus = ytdl.start().waitFor()
+        val logFile = tmpLogFile.readText()
+        println(logFile)
+        val destination: String = extractDestination(logFile)
+        val file = File(ytExtractsFolder, destination)
+        println("destination file: ${file.absolutePath}")
+        val newFile = File(ytExtractsFolder, destination.substringBeforeLast("-")+".mp3")
+        val renameSuccessful = file.renameTo(newFile)
+        println(">>>> download $exitStatus")
+        if(exitStatus == 0) {
+            return if(renameSuccessful) {
+                Music(newFile.nameWithoutExtension, newFile)
+            } else {
+                Music(file.nameWithoutExtension, file)
+            }
+        }
+        return null
+    }
+
+    private fun extractDestination(logFile: String): String {
+        val prefix = "[download] Destination: "
+        return logFile.lines().first {
+            it.startsWith(prefix)
+        }.substring(prefix.length).substringBeforeLast(".")+".mp3"
     }
 
     fun perform(actionType: String, length: Long, reader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {

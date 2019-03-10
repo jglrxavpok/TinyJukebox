@@ -17,7 +17,7 @@
             <!-- About button. Popover filled by about.js !-->
             <button type="button" data-title="About TinyJukebox" id="aboutButton" data-html="true" class="btn btn-secondary" data-container="body" data-toggle="popover" data-placement="bottom" data-content=
                     "
-                    TODO
+                    Github link: <a href='https://github.com/jglrxavpok/TinyJukebox'>Here</a>
                     ">
                 About
             </button>
@@ -36,8 +36,13 @@
         </div>
         <hr/>
         <input type="file" name="musicFile" id="musicFile" />
-        <button id="upload" class="btn btn-primary btn-lg">
-            Upload
+        <button id="uploadLocal" class="btn btn-primary btn-lg">
+            Upload from local file
+        </button>
+        <hr/>
+        <input type="text" name="youtubeLink" id="youtubeLink" placeholder="https://youtube.com/watch?v=<id>"/>
+        <button id="uploadYoutube" class="btn btn-primary btn-lg">
+            Upload from YouTube
         </button>
         <div id="transferProgress"></div>
         <br/>

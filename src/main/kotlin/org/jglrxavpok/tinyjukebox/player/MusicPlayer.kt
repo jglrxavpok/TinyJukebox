@@ -19,37 +19,43 @@ object MusicPlayer: Thread("Music Player") {
         while(!Thread.currentThread().isInterrupted) {
             if(!playing) {
                 val music = TinyJukebox.pollQueue()
-                if(music != null) {
-                    val clip = AudioSystem.getClip()
-                    currentClip = clip
-                    currentMusic = music
-                    println(">> Playing ${music.name} / ${music.file.absolutePath} / ${music.file.exists()}")
-                    val input = AudioSystem.getAudioInputStream(BufferedInputStream(FileInputStream(music.file)))
-                    val baseFormat = input.format
-                    val decodedFormat = AudioFormat(
-                        AudioFormat.Encoding.PCM_SIGNED,
-                        baseFormat.getSampleRate(),
-                        16,
-                        baseFormat.getChannels(),
-                        baseFormat.getChannels() * 2,
-                        baseFormat.getSampleRate(),
-                        false
-                    )
-                    val din = AudioSystem.getAudioInputStream(decodedFormat, input)
-                    clip.open(din)
-                    val gainControl = clip.getControl(FloatControl.Type.MASTER_GAIN) as FloatControl
-                    gainControl.value = -2.0f
-                    playing = true
-                    clip.start()
-                    clip.addLineListener {
-                        if(it.type == LineEvent.Type.STOP) {
-                            playing = false
-                            currentClip = null
-                            currentMusic = null
+                try {
+                    if(music != null) {
+                        val clip = AudioSystem.getClip()
+                        currentClip = clip
+                        currentMusic = music
+                        println(">> Playing ${music.name} / ${music.file.absolutePath} / ${music.file.exists()}")
+                        val input = AudioSystem.getAudioInputStream(BufferedInputStream(FileInputStream(music.file)))
+                        val baseFormat = input.format
+                        val decodedFormat = AudioFormat(
+                            AudioFormat.Encoding.PCM_SIGNED,
+                            baseFormat.getSampleRate(),
+                            16,
+                            baseFormat.getChannels(),
+                            baseFormat.getChannels() * 2,
+                            baseFormat.getSampleRate(),
+                            false
+                        )
+                        val din = AudioSystem.getAudioInputStream(decodedFormat, input)
+                        clip.open(din)
+                        val gainControl = clip.getControl(FloatControl.Type.MASTER_GAIN) as FloatControl
+                        gainControl.value = -2.0f
+                        playing = true
+                        clip.start()
+                        clip.addLineListener {
+                            if(it.type == LineEvent.Type.STOP) {
+                                playing = false
+                                currentClip = null
+                                currentMusic = null
+                            }
                         }
+                    } else {
+                        TinyJukebox.sendPlayerUpdateIfNecessary()
                     }
-                } else {
-                    TinyJukebox.sendPlayerUpdateIfNecessary()
+                } catch (e: Exception) {
+                    TinyJukebox.sendError(e)
+                    e.printStackTrace()
+                    playing = false
                 }
             } else {
                 TinyJukebox.sendPlayerUpdateIfNecessary()

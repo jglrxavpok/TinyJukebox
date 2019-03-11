@@ -2,6 +2,7 @@ package org.jglrxavpok.tinyjukebox
 
 import java.io.*
 import java.net.URLEncoder
+import java.nio.file.Paths
 import java.util.*
 
 object WebActions {
@@ -62,8 +63,16 @@ object WebActions {
         }
     }
 
-    private fun uploadLocal(clientReader: BufferedReader, attributes: Map<String, String>): Music {
+    private fun uploadLocal(clientReader: BufferedReader, attributes: Map<String, String>): Music? {
         val filename = attributes["File-Name"]!!
+        val root = Paths.get("./")
+        val localFilePath = Paths.get(filename)
+        println(">> ${root.relativize(localFilePath)}")
+        if(root.relativize(localFilePath).startsWith("../..")) {
+            println("[ERROR uploadLocal] Tried to play invalid file at $localFilePath")
+            TinyJukebox.sendError(IllegalArgumentException("Invalid file location, are you trying to break me ? :("))
+            return null
+        }
         val file = File("./music/$filename")
         if(!file.parentFile.exists()) {
             file.parentFile.mkdirs() // TODO check error
@@ -96,6 +105,7 @@ object WebActions {
         val logFile = tmpLogFile.readText()
         println(logFile)
         val destination: String = extractDestination(logFile)
+        //tmpLogFile.delete()
         val file = File(ytExtractsFolder, destination)
         println("destination file: ${file.absolutePath}")
         val newFile = File(ytExtractsFolder, destination.substringBeforeLast("-")+".mp3")

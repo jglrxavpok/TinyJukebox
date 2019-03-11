@@ -9,12 +9,13 @@ requirejs.config({
     paths: pathsObject
 });
 
-requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about'],
-function   ($, bootstrap, quote, config, about) {
+requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler'],
+function   ($, bootstrap, quote, config, about, messageHandler) {
+    $('.alert').alert();
+
     quote.update(); // force the quote to appear right at the start
     setInterval(quote.update, config.quoteChangePeriod);
     var queueContainer = $("#queueContainer");
-    var playingContainer = $("#playingContainer");
     // TODO: configurable port
     var socket = new WebSocket(`ws://${window.location.hostname}:${config.websocketPort}`);
     console.log("Socket addr is "+`ws://${window.location.hostname}:${config.websocketPort}`);
@@ -26,35 +27,7 @@ function   ($, bootstrap, quote, config, about) {
     socket.onmessage = function (ev) {
         console.log(ev.data);
         var lines = ev.data.split("\n");
-        switch (lines[0]) {
-            case "queue":
-                var queueHTML = "<ol>";
-                for (let i = 1; i < lines.length; i++) {
-                    queueHTML += "<li><i>"+lines[i]+"</i></li>";
-                }
-                queueHTML += "</ol>";
-                queueContainer.html(queueHTML);
-                break;
-
-            case "playerUpdate":
-                var actuallyPlaying = lines[1] === "true";
-                if(actuallyPlaying) {
-                    var name = lines[2];
-                    var currentTime = lines[3];
-                    var totalTime = lines[4];
-                    var percent = Math.round(lines[5]*1000)/10;
-                    console.log(percent);
-                    playingContainer.html(`
-                        <h1>Currently playing: <i>${name}</i> (${currentTime} - ${totalTime})</h1>
-                        <div class="progress">
-                          <div class="progress-bar bg-success" role="progressbar" style="width: ${percent}%" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                        `);
-                } else {
-                    playingContainer.html("<h1>Not playing anything</h1>")
-                }
-                break;
-        }
+        messageHandler(lines);
     };
 
     socket.onerror = function (ev) {

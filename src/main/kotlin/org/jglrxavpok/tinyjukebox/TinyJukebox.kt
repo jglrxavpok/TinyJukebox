@@ -2,6 +2,7 @@ package org.jglrxavpok.tinyjukebox
 
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.websocket.JukeboxWebsocketServer
+import java.lang.Exception
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Collectors
 import kotlin.concurrent.read
@@ -109,6 +110,12 @@ object TinyJukebox {
         val seconds = this / 1_000_000
         val minutes = seconds / 60
         return "$minutes:${String.format("%02d", seconds % 60)}"
+    }
+
+    fun sendError(error: Exception) {
+        val actualErrorMessage = error.javaClass.canonicalName+": "+error.message
+        val errorMessage = "error\n$actualErrorMessage"
+        websocket.broadcast(errorMessage)
     }
 
 }

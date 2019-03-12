@@ -53,7 +53,41 @@
         <button id="empty">
             Clear queue
         </button>
+
+    <div id="yt-search-modal-container">
+        <div class="modal fade" id="ytModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Youtube Search</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="ytSearchInput" />
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" id="ytSearchButton">Search</button>
+                            </div>
+                        </div>
+                        <div id="yt-search-results" class="d-flex justify-content-center flex-wrap col-md-14">
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" data-toggle="modal" data-target="#ytModal">Search on YouTube</button>
+    </div>
     </body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script data-main="scripts/main.js" src="scripts/require.min.js"></script>
+    <script src="scripts/youtube-search/auth.js"></script>
+    <script src="scripts/youtube-search/search.js"></script>
+    <script src="https://apis.google.com/js/client.js?onload=googleApiClientReady"></script>
 </html>

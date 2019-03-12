@@ -1,58 +1,61 @@
 package org.jglrxavpok.tinyjukebox
 
+import com.google.gson.Gson
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import java.io.*
 import java.lang.Exception
-import java.net.URLEncoder
+import java.net.URL
 import java.nio.file.Paths
 import java.util.*
+import java.util.regex.Pattern
 
 object WebActions {
 
-    open class Action(val id: String, val reloadsPage: Boolean, val action: (Long, BufferedReader, InputStream, Map<String, String>) -> Unit, val generateParameters: () -> String? = {"return null"}) {
-        open fun generateSend(): String {
-            return """
-                var content = function() {
-                    ${generateParameters()}
-                }
-                xhttp.send(content());
-            """.trimIndent()
-        }
+    val gson = Gson()
+    //val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?title=\"(?<NAME>.*?)\".*?</div></div></div></li>")
+    val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?href=\"/watch\\?v=(?<ID>.*?)\".*?title=\"(?<NAME>.*?)\".*?<a href=\"/(user|channel)/.*?\" class=\"yt-uix-sessionlink.*?>(?<CHANNEL>.*?)<.*?</div></div></div></li>")
+    //val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?title=\"(?<NAME>.*?)\".*?</div></div></div></li>")
+
+    open class Action(val id: String, val reloadsPage: Boolean, val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>) -> Unit, val generateParameters: () -> String? = {"return null"}) {
     }
 
     val id2actionMap = listOf(
         Action("empty", true, this::empty),
-        object: Action("upload", true, this::upload, {null}) {
-            override fun generateSend(): String {
-                return """
-                    var field = document.getElementById("musicFile");
-                    var file = field.files[0];
-                    console.log("my object: %o", file)
-                    xhttp.setRequestHeader("File-Size", file.size);
-                    xhttp.setRequestHeader("File-Name", file.name);
-
-                    var transferDiv = document.getElementById("transferProgress");
-                    transferDiv.innerHTML = "Loading file...";
-                    var reader = new FileReader();
-                    reader.onload = function(e) {
-                        var arrayBuffer = reader.result;
-                        transferDiv.innerHTML = "Sending!";
-                        xhttp.send(arrayBuffer+"\n");
-                        //console.log(arrayBuffer);
-                    }
-
-                 //   reader.readAsArrayBuffer(file);
-                 reader.readAsDataURL(file);
-                """.trimIndent()
-
-            }
-        }
+        Action("upload", true, this::upload, {null}),
+        Action("ytsearch", false, this::ytsearch)
     )
 
-    private fun empty(length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
+    private fun ytsearch(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
+        val query = clientReader.readLine()
+        val queryURL = URL("https://www.youtube.com/results?search_query=${query.replace(" ", "+")}")
+        val text = queryURL.readText()
+        writer.println(createAnswerJson(text))
+        // FIXME writer.println("[{\"id\": \"$toSend\", \"channel\": \"some channel\", \"title\": \"some title\"}]")
+    }
+
+    private fun createAnswerJson(text: String): JsonArray {
+        val array = JsonArray()
+        val matcher = pattern.matcher(text)
+        while(matcher.find()) {
+            val title = matcher.group("NAME")
+            val id = matcher.group("ID")
+            val channel = matcher.group("CHANNEL")
+
+            val videoObj = JsonObject()
+            videoObj.addProperty("title", title)
+            videoObj.addProperty("id", id)
+            videoObj.addProperty("channel", channel)
+            array.add(videoObj)
+        }
+        return array
+    }
+
+    private fun empty(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
         TinyJukebox.emptyQueue()
     }
 
-    private fun upload(length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
+    private fun upload(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
         val fileSource = attributes["File-Source"]
         val music: Music? = when(fileSource) {
             "Local" -> uploadLocal(clientReader, attributes)
@@ -137,9 +140,9 @@ object WebActions {
         }.substring(prefix.length).substringBeforeLast(".")+".mp3"
     }
 
-    fun perform(actionType: String, length: Long, reader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
+    fun perform(writer: PrintWriter, actionType: String, length: Long, reader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
         try {
-            id2actionMap.first { it.id == actionType}.action(length, reader, clientInput, attributes)
+            id2actionMap.first { it.id == actionType}.action(writer, length, reader, clientInput, attributes)
         } catch (e: Exception) {
             TinyJukebox.sendError(IllegalArgumentException("Failed to perform action: $e"))
             e.printStackTrace()

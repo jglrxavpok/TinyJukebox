@@ -7,18 +7,20 @@ import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.net.Socket
 import java.nio.file.Paths
+import kotlin.random.Random
 
 class HttpHandler(val client: Socket): Thread("Client $client") {
 
     companion object {
         val quotes by lazy {
-            val text = HttpHandler::class.java.getResourceAsStream("/quotes.txt")?.reader()?.readText() ?: "No quotes :c"
+            val text = HttpHandler::class.java.getResourceAsStream("/quotes_intech.txt")?.reader()?.readText() ?: "No quotes :c"
             text.split('\n')
         }
     }
     val rootPath = Paths.get("/")
     val writer = PrintWriter(OutputStreamWriter(client.getOutputStream()))
     val reader = BufferedReader(InputStreamReader(client.getInputStream()))
+    val random = Random(System.currentTimeMillis())
 
     override fun run() {
         val request = reader.readLine()
@@ -55,8 +57,8 @@ class HttpHandler(val client: Socket): Thread("Client $client") {
         if(location.startsWith("/action/")) {
             val actionType = location.substring("/action/".length)
             if(WebActions.isValidAction(actionType)) {
-                WebActions.perform(actionType, length, reader, client.getInputStream(), attributes)
                 htmlError(200)
+                WebActions.perform(writer, actionType, length, reader, client.getInputStream(), attributes)
             } else {
                 htmlError(404)
             }
@@ -70,7 +72,7 @@ class HttpHandler(val client: Socket): Thread("Client $client") {
         when(location) {
             "/quote" -> {
                 htmlError(200, "Content-Type: text/plain")
-                writer.println(quotes.random())
+                writer.println(quotes.random(random))
                 return
             }
         }

@@ -1,6 +1,7 @@
 package org.jglrxavpok.tinyjukebox
 
 import java.io.*
+import java.lang.Exception
 import java.net.URLEncoder
 import java.nio.file.Paths
 import java.util.*
@@ -64,16 +65,24 @@ object WebActions {
     }
 
     private fun uploadLocal(clientReader: BufferedReader, attributes: Map<String, String>): Music? {
-        val filename = attributes["File-Name"]!!
-        val root = Paths.get("./")
-        val localFilePath = Paths.get(filename)
-        println(">> ${root.relativize(localFilePath)}")
-        if(root.relativize(localFilePath).startsWith("../..")) {
+        val filename = attributes["File-Name"]
+        if(filename == null) {
+            TinyJukebox.sendError(IllegalArgumentException("No file name ?! Are you trying to break me ?! >:("))
+            return null
+        }
+        val root = Paths.get("music/").toAbsolutePath()
+        val localFilePath = Paths.get("music/$filename").toAbsolutePath()
+        val f = localFilePath.toFile()
+        if(!f.canonicalPath.startsWith(root.toFile().canonicalPath)) {
             println("[ERROR uploadLocal] Tried to play invalid file at $localFilePath")
             TinyJukebox.sendError(IllegalArgumentException("Invalid file location, are you trying to break me ? :("))
             return null
         }
         val file = File("./music/$filename")
+        if(file.isDirectory) {
+            TinyJukebox.sendError(IllegalArgumentException("Invalid file location, that's a directory"))
+            return null
+        }
         if(!file.parentFile.exists()) {
             file.parentFile.mkdirs() // TODO check error
         }
@@ -129,7 +138,12 @@ object WebActions {
     }
 
     fun perform(actionType: String, length: Long, reader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
-        id2actionMap.first { it.id == actionType}.action(length, reader, clientInput, attributes)
+        try {
+            id2actionMap.first { it.id == actionType}.action(length, reader, clientInput, attributes)
+        } catch (e: Exception) {
+            TinyJukebox.sendError(IllegalArgumentException("Failed to perform action: $e"))
+            e.printStackTrace()
+        }
     }
 
     fun isValidAction(actionType: String): Boolean {

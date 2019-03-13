@@ -24,8 +24,8 @@ object MusicPlayer: Thread("Music Player") {
                         val clip = AudioSystem.getClip()
                         currentClip = clip
                         currentMusic = music
-                        println(">> Playing ${music.name} / ${music.file.absolutePath} / ${music.file.exists()}")
-                        val input = AudioSystem.getAudioInputStream(BufferedInputStream(FileInputStream(music.file)))
+                        println(">> Playing ${music.name} / ${music.source}")
+                        val input = AudioSystem.getAudioInputStream(BufferedInputStream(music.source.createStream()))
                         val baseFormat = input.format
                         val decodedFormat = AudioFormat(
                             AudioFormat.Encoding.PCM_SIGNED,

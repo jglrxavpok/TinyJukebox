@@ -3,6 +3,8 @@ package org.jglrxavpok.tinyjukebox
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import org.jglrxavpok.tinyjukebox.player.FileSource
+import org.jglrxavpok.tinyjukebox.player.YoutubeSource
 import java.io.*
 import java.lang.Exception
 import java.net.URL
@@ -98,39 +100,24 @@ object WebActions {
         target.close()
 
         println("file size=${file.length()}")
-        return Music(file.nameWithoutExtension, file)
+        return Music(file.nameWithoutExtension, FileSource(file))
     }
 
     private fun uploadYoutube(clientReader: BufferedReader, attributes: Map<String, String>): Music? {
         val url = clientReader.readLine()
-        println("Attempting to read music from YT url: $url")
-        val ytExtractsFolder = File("./music/yt/")
+
+       /* val ytExtractsFolder = File("./music/yt/")
         if(!ytExtractsFolder.exists()) {
             ytExtractsFolder.mkdirs()
         }
         val process = ProcessBuilder()
-        val tmpLogFile = File("./music/yt/tmp_${System.currentTimeMillis()}.log")
-        val ytdl = process.directory(ytExtractsFolder).command("youtube-dl", "-x", "--audio-format", "mp3", url)
-        println(ytdl.command().joinToString(" "))
-        ytdl.redirectOutput(tmpLogFile)
-        val exitStatus = ytdl.start().waitFor()
-        val logFile = tmpLogFile.readText()
-        println(logFile)
-        val destination: String = extractDestination(logFile)
-        //tmpLogFile.delete()
-        val file = File(ytExtractsFolder, destination)
-        println("destination file: ${file.absolutePath}")
-        val newFile = File(ytExtractsFolder, destination.substringBeforeLast("-")+".mp3")
-        val renameSuccessful = file.renameTo(newFile)
-        println(">>>> download $exitStatus")
-        if(exitStatus == 0) {
-            return if(renameSuccessful) {
-                Music(newFile.nameWithoutExtension, newFile)
-            } else {
-                Music(file.nameWithoutExtension, file)
-            }
-        }
-        return null
+        val ytdl = process.directory(ytExtractsFolder).command("youtube-dl", "-o", "-", url)
+        val ffmpeg = ProcessBuilder().command("ffmpeg", "-i", "-", "-f", "mp3", "-vn", "-")
+        val ytdlProcess = ytdl.start()
+        val ffmpegProcess = ffmpeg.start()
+        PipingThread(ytdlProcess, ffmpegProcess).start()
+        val exitStatus = ffmpegProcess.waitFor()*/
+        return Music(/*name*/"NAME TODO", YoutubeSource(url))
     }
 
     private fun extractDestination(logFile: String): String {

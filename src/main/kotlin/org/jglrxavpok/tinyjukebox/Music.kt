@@ -1,5 +1,5 @@
 package org.jglrxavpok.tinyjukebox
 
-import java.io.File
+import org.jglrxavpok.tinyjukebox.player.MusicSource
 
-data class Music(val name: String, val file: File) // TODO: sender?
+data class Music(val name: String, val source: MusicSource) // TODO: sender?

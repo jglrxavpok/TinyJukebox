@@ -9,7 +9,7 @@ requirejs.config({
     paths: pathsObject
 });
 
-requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler'],
+requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler', 'youtube-search/search'],
 function   ($, bootstrap, quote, config, about, messageHandler) {
     $('.alert').alert();
 

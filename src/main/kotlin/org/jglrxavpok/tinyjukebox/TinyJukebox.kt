@@ -5,8 +5,12 @@ import org.jglrxavpok.tinyjukebox.websocket.JukeboxWebsocketServer
 import java.lang.Exception
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Collectors
+import javax.sound.sampled.AudioInputStream
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import org.tritonus.share.sampled.AudioUtils.getFrameSize
+
+
 
 object TinyJukebox {
 
@@ -72,11 +76,12 @@ object TinyJukebox {
     }
 
     fun sendPlayerUpdateIfNecessary() {
-        val clip = MusicPlayer.currentClip
-        val hasUpdated =    if(!currentlyPlaying) {
-                                clip != null // started playing
+        val playerState = MusicPlayer.state
+        val position = System.currentTimeMillis()-playerState.startTime
+        val hasUpdated =    /*if(!currentlyPlaying) {
+                                audioStream != null // started playing
                             } else {
-                                if(clip == null) {
+                                if(audioStream == null) {
                                     true // stopped playing
                                 }
                                 else {
@@ -84,21 +89,22 @@ object TinyJukebox {
                                     if(music != currentMusic) {
                                         true // music changed
                                     } else {
-                                        currentPosition != clip.microsecondPosition.toMinutesAndSeconds()
+                                        currentPosition != position!!.toMinutesAndSeconds()
                                     }
                                 }
-                            }
+                            }*/true
 
         // copy state
-        currentMusic = MusicPlayer.currentMusic
-        currentlyPlaying = clip != null
-        currentPosition = clip?.microsecondPosition?.toMinutesAndSeconds() ?: "-1:-1"
+        currentMusic = playerState.currentMusic
+        currentlyPlaying = currentMusic != null
+        currentPosition = position.toMinutesAndSeconds()
 
         // send update if necessary
         if(hasUpdated) {
-            if(clip != null) {
-                val percent = clip.microsecondPosition.toDouble()/clip.microsecondLength.toDouble()
-                websocket.sendPlayerUpdate(true, MusicPlayer.currentMusic!!.name, clip.microsecondPosition.toMinutesAndSeconds(), clip.microsecondLength.toMinutesAndSeconds(), percent)
+            if(currentlyPlaying) {
+                val duration = playerState.duration
+                val percent = position.toDouble()/duration.toDouble()
+                websocket.sendPlayerUpdate(true, playerState.currentMusic!!.name, position.toMinutesAndSeconds(), duration.toMinutesAndSeconds(), percent)
             } else {
                 // not playing anything
                 websocket.sendPlayerUpdate(false)
@@ -107,7 +113,7 @@ object TinyJukebox {
     }
 
     private fun Long.toMinutesAndSeconds(): String {
-        val seconds = this / 1_000_000
+        val seconds = this / 1_000
         val minutes = seconds / 60
         return "$minutes:${String.format("%02d", seconds % 60)}"
     }

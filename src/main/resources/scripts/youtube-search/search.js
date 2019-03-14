@@ -1,4 +1,4 @@
-function handleAPILoaded() {
+define(['jquery'], function($) {
     // open youtube modal
     var searchInput = $('#ytSearchInput');
     var ytModal = $('#ytModal');
@@ -9,11 +9,11 @@ function handleAPILoaded() {
         sendRequest(searchInput.val());
     });
     searchInput.on('keyup', function(e) {
-        if(e.which === 13) {
+        if (e.which === 13) {
             sendRequest(searchInput.val());
         }
     });
-}
+});
 
 function sendRequest(query) {
     var xhttp = new XMLHttpRequest();

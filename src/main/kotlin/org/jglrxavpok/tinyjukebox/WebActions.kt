@@ -19,13 +19,12 @@ object WebActions {
     val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?href=\"/watch\\?v=(?<ID>.*?)\".*?title=\"(?<NAME>.*?)\".*?<a href=\"/(user|channel)/.*?\" class=\"yt-uix-sessionlink.*?>(?<CHANNEL>.*?)<.*?</div></div></div></li>")
     //val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?title=\"(?<NAME>.*?)\".*?</div></div></div></li>")
 
-    open class Action(val id: String, val reloadsPage: Boolean, val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>) -> Unit, val generateParameters: () -> String? = {"return null"}) {
-    }
+    open class Action(val id: String, val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>) -> Unit)
 
     val id2actionMap = listOf(
-        Action("empty", true, this::empty),
-        Action("upload", true, this::upload, {null}),
-        Action("ytsearch", false, this::ytsearch)
+        Action("empty", this::empty),
+        Action("upload", this::upload),
+        Action("ytsearch", this::ytsearch)
     )
 
     private fun ytsearch(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
@@ -105,19 +104,7 @@ object WebActions {
 
     private fun uploadYoutube(clientReader: BufferedReader, attributes: Map<String, String>): Music? {
         val url = clientReader.readLine()
-
-       /* val ytExtractsFolder = File("./music/yt/")
-        if(!ytExtractsFolder.exists()) {
-            ytExtractsFolder.mkdirs()
-        }
-        val process = ProcessBuilder()
-        val ytdl = process.directory(ytExtractsFolder).command("youtube-dl", "-o", "-", url)
-        val ffmpeg = ProcessBuilder().command("ffmpeg", "-i", "-", "-f", "mp3", "-vn", "-")
-        val ytdlProcess = ytdl.start()
-        val ffmpegProcess = ffmpeg.start()
-        PipingThread(ytdlProcess, ffmpegProcess).start()
-        val exitStatus = ffmpegProcess.waitFor()*/
-        return Music(/*name*/"NAME TODO", YoutubeSource(url))
+        return Music(YoutubeSource(url))
     }
 
     private fun extractDestination(logFile: String): String {

@@ -5,7 +5,6 @@ import java.io.*
 import java.nio.channels.Pipe
 
 class YoutubeSource(val url: String): MusicSource {
-
     private var duration: Long = -1
 
     override fun computeDurationInMillis(): Long {
@@ -14,8 +13,14 @@ class YoutubeSource(val url: String): MusicSource {
             val ytdl = process.command("youtube-dl", "--get-duration", url).start()
             val reader = BufferedReader(InputStreamReader(ytdl.inputStream))
             val result = reader.readLine()
-            val parts = result.split(":")
-            duration = parts[1].toLong()*1000 + parts[0].toLong()*1000*60 // <minutes>:<seconds>
+            reader.close()
+            println(">> "+result)
+            if(result.contains(":")) {
+                val parts = result.split(":")
+                duration = parts[1].toLong()*1000 + parts[0].toLong()*1000*60 // <minutes>:<seconds>
+            } else {
+                duration = result.toLong()*1000
+            }
             return duration
         }
         return duration
@@ -43,5 +48,13 @@ class YoutubeSource(val url: String): MusicSource {
 
         }*/
         return ffmpegProcess.inputStream
+    }
+
+    override fun fetchName(): String {
+        val ytdl = ProcessBuilder().command("youtube-dl", "--get-title", url).start()
+        val reader = BufferedReader(InputStreamReader(ytdl.inputStream))
+        val result = reader.readLine()
+        reader.close()
+        return result
     }
 }

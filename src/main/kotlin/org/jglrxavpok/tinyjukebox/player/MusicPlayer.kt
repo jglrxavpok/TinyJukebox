@@ -1,5 +1,7 @@
 package org.jglrxavpok.tinyjukebox.player
 
+import org.eclipse.jgit.util.io.InterruptTimer
+import org.eclipse.jgit.util.io.TimeoutInputStream
 import org.jglrxavpok.tinyjukebox.Music
 import org.jglrxavpok.tinyjukebox.TinyJukebox
 import java.io.BufferedInputStream
@@ -24,6 +26,7 @@ object MusicPlayer: Thread("Music Player") {
 
     var bytesRead: Long = 0
     var state = State()
+    private var lastCheck = 0L
 
     override fun run() {
         while(!Thread.currentThread().isInterrupted) {
@@ -34,16 +37,9 @@ object MusicPlayer: Thread("Music Player") {
                         state.setPlaying(music, System.currentTimeMillis(), music.source.computeDurationInMillis())
                         println(">> Playing ${music.name} / ${music.source}")
                         val unbufferedStream = music.source.createStream()
-                        val available = unbufferedStream.available()
                         val sourceStream = BufferedInputStream(unbufferedStream)
-                        val format = AudioSystem.getAudioFileFormat(sourceStream)
-                        println("format is $format")
                         val input = AudioSystem.getAudioInputStream(sourceStream)
-                        println("input read")
                         val baseFormat = input.format
-                        println("frameLength: ${input.frameLength} - ${available/input.format.frameSize}")
-                        println("format: ${input.format}")
-                        println("base format read")
                         val decodedFormat = AudioFormat(
                             AudioFormat.Encoding.PCM_SIGNED,
                             baseFormat.getSampleRate(),
@@ -55,14 +51,10 @@ object MusicPlayer: Thread("Music Player") {
                         )
                         val din = AudioSystem.getAudioInputStream(decodedFormat, input)
 
-                        println("din frameLength: ${din.frameLength} - ${available/din.format.frameSize}")
-                        println("din format: ${din.format}")
+                        val timeoutInput = TimeoutInputStream(din, InterruptTimer())
 
-                        /*println("pre clip opening")
-                        clip.open(din)
-                        println("clip opening")
-                        clip.start()
-                        println("clip start")*/
+                        timeoutInput.timeout = 5000
+
                         val dataLineInfo = DataLine.Info(SourceDataLine::class.java, decodedFormat)
                         val sourceDataLine = AudioSystem.getLine(dataLineInfo) as SourceDataLine
                         sourceDataLine.open(decodedFormat)
@@ -70,44 +62,51 @@ object MusicPlayer: Thread("Music Player") {
 
                         val buffer = ByteArray(1024*8*1024)
                         bytesRead = 0
-                        var lastCheck = System.currentTimeMillis()
+
                         do {
-                            val cnt = din.read(buffer)
-                            if(cnt >= 0) {
-                                bytesRead += cnt
-                                //Write data to the internal buffer of the data line where it will be delivered to the speaker.
-                                sourceDataLine.write(buffer, 0, cnt)
+                            val cnt: Int
+                            try {
+                                cnt = timeoutInput.read(buffer)
+                                if(cnt >= 0) {
+                                    bytesRead += cnt
+                                    //Write data to the internal buffer of the data line where it will be delivered to the speaker.
+                                    sourceDataLine.write(buffer, 0, cnt)
 
-                                if(System.currentTimeMillis()-lastCheck > 250) { // every 1/4th of a second
-                                    TinyJukebox.sendPlayerUpdateIfNecessary()
-                                    lastCheck = System.currentTimeMillis()
+                                    updateClients()
                                 }
+                            } catch (e: Exception) {
+                                timeoutInput.close()
+                                e.printStackTrace()
+                                break
                             }
-
                         } while(cnt != -1)
                         //Block and wait for internal buffer of the data line to empty.
+                        sourceDataLine.flush()
                         sourceDataLine.close()
+                        state.setPlaying(null, 0,0)
                         bytesRead = 0
-/*                        val gainControl = clip.getControl(FloatControl.Type.MASTER_GAIN) as FloatControl
-                        gainControl.value = -2.0f
-                        playing = true
-                        clip.addLineListener {
-                            if(it.type == LineEvent.Type.STOP) {
-                                playing = false
-                                currentClip = null
-                                currentMusic = null
-                            }
-                        }*/
                     }
                 } catch (e: Exception) {
                     TinyJukebox.sendError(e)
                     e.printStackTrace()
                     state.setPlaying(null, 0, 0)
                 }
+            } else { // not playing
+                updateClients()
             }
 
 
             Thread.sleep(200)
+        }
+    }
+
+    /**
+     * Send an update to clients about the current state of the player if the last call to this function was more than 250ms ago
+     */
+    private fun updateClients() {
+        if(System.currentTimeMillis()-lastCheck > 250) { // every 1/4th of a second
+            TinyJukebox.sendPlayerUpdateIfNecessary()
+            lastCheck = System.currentTimeMillis()
         }
     }
 }

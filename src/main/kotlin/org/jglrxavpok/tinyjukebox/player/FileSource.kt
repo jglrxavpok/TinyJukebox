@@ -28,4 +28,8 @@ class FileSource(val file: File): MusicSource {
     }
 
     override fun createStream(): InputStream = file.inputStream()
+
+    override fun fetchName(): String {
+        return file.nameWithoutExtension
+    }
 }

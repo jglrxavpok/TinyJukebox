@@ -54,22 +54,10 @@ function sendRequest(query) {
                 xhttp.open("POST", "/action/upload", true);
                 xhttp.setRequestHeader("Content-Type", "application/octet-stream");
                 xhttp.setRequestHeader("File-Source", "Youtube");
+                $('#ytModal').modal('hide');
                 xhttp.send("https://youtube.com/watch?v="+videoID+"\n");
             });
         });
     };
     xhttp.send(query+"\n");
-
-    /*var request = gapi.client.youtube.search.list({
-        q: query,
-        part: 'snippet'
-    });
-
-    request.execute(function(response) {
-        console.log(response);
-
-        return;
-        // TODO
-
-    });*/
 }

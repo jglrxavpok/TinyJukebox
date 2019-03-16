@@ -5,4 +5,5 @@ import java.io.InputStream
 interface MusicSource {
     fun createStream(): InputStream
     fun computeDurationInMillis(): Long
+    fun fetchName(): String
 }

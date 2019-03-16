@@ -37,6 +37,8 @@ dependencies {
     compile "org.java-websocket:Java-WebSocket:1.4.0"
 
     compile 'com.google.code.gson:gson:2.8.5'
+    
+    compile 'org.eclipse.jgit:org.eclipse.jgit:5.2.1.201812262042-r'
 }
 
 //create a single Jar with all dependencies

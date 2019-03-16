@@ -9,8 +9,8 @@ requirejs.config({
     paths: pathsObject
 });
 
-requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler', 'youtube-search/search'],
-function   ($, bootstrap, quote, config, about, messageHandler) {
+requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler', 'youtube-search/search', 'playerControl'],
+function   ($, bootstrap, quote, config, about, messageHandler, playerControl) {
     $('.alert').alert();
 
     quote.update(); // force the quote to appear right at the start

@@ -121,7 +121,9 @@ object TinyJukebox {
     fun sendError(error: Exception) {
         val actualErrorMessage = error.javaClass.canonicalName+": "+error.message
         val errorMessage = "error\n$actualErrorMessage"
-        websocket.broadcast(errorMessage)
+        error.printStackTrace()
+        if(this::websocket.isInitialized)
+            websocket.broadcast(errorMessage)
     }
 
 }

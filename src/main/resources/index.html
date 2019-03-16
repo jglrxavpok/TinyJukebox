@@ -33,6 +33,7 @@
         <div class="playingContainer" id="playingContainer">
             <!-- The playingContainer will be filled by JS code here !-->
         </div>
+        <button class="btn btn-primary btn-lg" role="button" id="skipButton">Skip !</button>
         Here's the current queue:
         <br/>
         <div class="queueContainer" id="queueContainer">
@@ -84,6 +85,46 @@
 
         <button class="btn btn-primary" data-toggle="modal" data-target="#ytModal">Search on YouTube</button>
     </div>
+
+
+        <div id="auth-modal-container">
+            <div class="modal fade" id="authModal" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Authentification</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" >Username</span>
+                                </div>
+                                <div class="input-group-append">
+                                    <input type="text" class="form-control" id="authUsername" />
+                                </div>
+                            </div>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" >Password</span>
+                                </div>
+                                <div class="input-group-append">
+                                    <input type="password" class="form-control" id="authPassword" />
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" id="authCheckButton">Connect</button>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" data-toggle="modal" data-target="#ytModal">Search on YouTube</button>
+        </div>
     </body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script data-main="scripts/main.js" src="scripts/require.min.js"></script>

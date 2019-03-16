@@ -3,7 +3,9 @@ package org.jglrxavpok.tinyjukebox
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import org.jglrxavpok.tinyjukebox.auth.AuthChecker
 import org.jglrxavpok.tinyjukebox.player.FileSource
+import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.player.YoutubeSource
 import java.io.*
 import java.lang.Exception
@@ -24,7 +26,9 @@ object WebActions {
     val id2actionMap = listOf(
         Action("empty", this::empty),
         Action("upload", this::upload),
-        Action("ytsearch", this::ytsearch)
+        Action("ytsearch", this::ytsearch),
+        Action("auth", AuthChecker.checkAuth(null)),
+        Action("playercontrol/skip", AuthChecker.checkAuth(MusicPlayer::skip))
     )
 
     private fun ytsearch(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {

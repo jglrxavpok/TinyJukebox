@@ -11,13 +11,11 @@ class PipingThread(val left: Process, val right: Process): Thread("Piping thread
         try {
             do {
                 val read = left.inputStream.read(buffer)
-                println("$this = $read read")
                 if(read > 0) {
                     right.outputStream.write(buffer, 0, read)
                     right.outputStream.flush()
                 }
             } while(read != -1)
-            println("read finished")
             right.outputStream.close()
         } catch (e: Exception) {
             e.printStackTrace()

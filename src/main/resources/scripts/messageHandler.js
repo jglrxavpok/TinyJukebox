@@ -1,5 +1,5 @@
-define(['jquery', 'bootstrap'],
-function($, bootstrap) {
+define(['jquery', 'bootstrap', 'playerControl', 'auth'],
+function($, bootstrap, playerControl, auth) {
     var playingContainer = $("#playingContainer");
     var queueContainer = $("#queueContainer");
     var alertContainer = $("#alertContainer");
@@ -9,10 +9,18 @@ function($, bootstrap) {
             case "queue":
                 var queueHTML = "<ol>";
                 for (let i = 1; i < lines.length; i++) {
-                    queueHTML += "<li><i>"+lines[i]+"</i></li>";
+                    queueHTML += "<li><i>"+lines[i]+`</i> <a href='#' class='queueRemoval' data-name='${lines[i]}'>&times;</a></li>`;
                 }
                 queueHTML += "</ol>";
                 queueContainer.html(queueHTML);
+
+                $(".queueRemoval").each(function() {
+                    var link = $(this);
+                    link.on('click', function(e) {
+                        var name = link.data("name");
+                        auth.requestAuth(playerControl.sendRemoveRequestSupplier(name));
+                    });
+                });
                 break;
 
             case "playerUpdate":
@@ -22,7 +30,6 @@ function($, bootstrap) {
                     var currentTime = lines[3];
                     var totalTime = lines[4];
                     var percent = Math.round(lines[5]*1000)/10;
-                    console.log(percent);
                     playingContainer.html(`
                         <h1>Currently playing: <i>${name}</i> (${currentTime} - ${totalTime})</h1>
                         <div class="progress">

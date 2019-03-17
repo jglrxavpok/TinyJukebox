@@ -6,8 +6,13 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import kotlin.concurrent.thread
 
+/**
+ * TinyJukebox entry point
+ */
 fun main(args: Array<String>) {
-    MusicPlayer.start()
+    MusicPlayer.start() // start Music playing thread
+
+    // start http and websocket servers
     // TODO: configurable port
     val httpSocket = ServerSocket(8080)
     val websocket = JukeboxWebsocketServer(InetSocketAddress(8887))
@@ -15,8 +20,6 @@ fun main(args: Array<String>) {
     websocket.start()
     while(true) {
         val client = httpSocket.accept()
-        thread {
-            HttpHandler(client).start()
-        }
+        HttpHandler(client).start()
     }
 }

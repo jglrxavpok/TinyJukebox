@@ -5,11 +5,8 @@ import org.jglrxavpok.tinyjukebox.websocket.JukeboxWebsocketServer
 import java.lang.Exception
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Collectors
-import javax.sound.sampled.AudioInputStream
 import kotlin.concurrent.read
 import kotlin.concurrent.write
-import org.tritonus.share.sampled.AudioUtils.getFrameSize
-
 
 
 object TinyJukebox {
@@ -26,25 +23,26 @@ object TinyJukebox {
     fun addToQueue(music: Music) {
         performChangesToQueue {
             add(music)
-            sendUpdate()
+            sendQueueUpdate()
         }
     }
 
     fun removeFromQueue(music: Music) {
         performChangesToQueue {
             removeIf { it == music }
-            sendUpdate()
+            sendQueueUpdate()
         }
     }
 
     fun emptyQueue() {
+        println("empty queue!")
         performChangesToQueue {
             clear()
-            sendUpdate()
+            sendQueueUpdate()
         }
     }
 
-    fun sendUpdate() {
+    fun sendQueueUpdate() {
         if(this::websocket.isInitialized)
             websocket.sendQueueToEveryone()
     }
@@ -65,7 +63,7 @@ object TinyJukebox {
                 null
             else {
                 val result = removeAt(0)
-                sendUpdate()
+                sendQueueUpdate()
                 result
             }
         }
@@ -76,8 +74,9 @@ object TinyJukebox {
     }
 
     fun sendPlayerUpdateIfNecessary() {
+        if(!this::websocket.isInitialized)
+            return
         val playerState = MusicPlayer.state
-        val position = System.currentTimeMillis()-playerState.startTime
         val hasUpdated =    /*if(!currentlyPlaying) {
                                 audioStream != null // started playing
                             } else {
@@ -94,16 +93,20 @@ object TinyJukebox {
                                 }
                             }*/true
 
+        val position = if(playerState.isPlaying()) {
+            val frame = MusicPlayer.bytesRead / playerState.format!!.frameSize
+            (frame / playerState.format!!.frameRate * 1000.0).toLong() // in milliseconds
+        } else null
         // copy state
         currentMusic = playerState.currentMusic
         currentlyPlaying = currentMusic != null
-        currentPosition = position.toMinutesAndSeconds()
+        currentPosition = position?.toMinutesAndSeconds() ?: ""
 
         // send update if necessary
         if(hasUpdated) {
             if(currentlyPlaying) {
                 val duration = playerState.duration
-                val percent = position.toDouble()/duration.toDouble()
+                val percent = position!!.toDouble()/duration.toDouble()
                 websocket.sendPlayerUpdate(true, playerState.currentMusic!!.name, position.toMinutesAndSeconds(), duration.toMinutesAndSeconds(), percent)
             } else {
                 // not playing anything
@@ -124,6 +127,14 @@ object TinyJukebox {
         error.printStackTrace()
         if(this::websocket.isInitialized)
             websocket.broadcast(errorMessage)
+    }
+
+    fun removeFromQueue(nameToRemove: String) {
+        println("Remove: '$nameToRemove'")
+        performChangesToQueue {
+            this.removeIf { it.name == nameToRemove }
+            sendQueueUpdate()
+        }
     }
 
 }

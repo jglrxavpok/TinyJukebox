@@ -1,5 +1,6 @@
 define(['jquery'], function($) {
     var authModal = $('#authModal');
+    var alertContainer = $("#alertContainer");
     var auth = {
         currentCallback: undefined,
 
@@ -23,7 +24,8 @@ define(['jquery'], function($) {
 
             xhttp.onload = function() {
                 var text = xhttp.responseText;
-                if (text === 'no') {
+                authModal.modal('hide');
+                if (text.indexOf('no') !== -1) {
                     alertContainer.html(alertContainer.html() +
                         `
                     <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -35,7 +37,6 @@ define(['jquery'], function($) {
                     `
                     );
                 } else {
-                    authModal.modal('hide');
                     auth.currentCallback(username, password);
                 }
             };

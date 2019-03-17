@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 object AuthChecker {
-    fun checkAuth(callback: (() -> Unit)?): (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>) -> Unit {
+    fun checkAuth(callback: ((PrintWriter, BufferedReader) -> Unit)?): (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>) -> Unit {
         return { writer, length, reader, input, attributes ->
             val username = reader.readLine()
             val password = reader.readLine()
@@ -24,13 +24,15 @@ object AuthChecker {
                 if(validPassword) {
                     writer.println("yes")
                     if(callback != null) {
-                        callback()
+                        callback(writer, reader)
                     }
                 } else {
                     writer.println("no")
+                    println("Invalid credentials for $username")
                 }
             } else {
                 writer.println("no")
+                println("Invalid credentials for $username")
             }
         }
     }

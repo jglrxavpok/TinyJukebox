@@ -24,19 +24,24 @@ object WebActions {
     open class Action(val id: String, val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>) -> Unit)
 
     val id2actionMap = listOf(
-        Action("empty", this::empty),
         Action("upload", this::upload),
         Action("ytsearch", this::ytsearch),
         Action("auth", AuthChecker.checkAuth(null)),
-        Action("playercontrol/skip", AuthChecker.checkAuth(MusicPlayer::skip))
+        Action("playercontrol/empty", AuthChecker.checkAuth { writer, reader -> TinyJukebox.emptyQueue()}),
+        Action("playercontrol/skip", AuthChecker.checkAuth { writer, reader -> MusicPlayer.skip()}),
+        Action("playercontrol/remove", AuthChecker.checkAuth(this::removeFromQueue))
     )
+
+    private fun removeFromQueue(writer: PrintWriter, clientReader: BufferedReader) {
+        val nameToRemove = clientReader.readLine()
+        TinyJukebox.removeFromQueue(nameToRemove)
+    }
 
     private fun ytsearch(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
         val query = clientReader.readLine()
         val queryURL = URL("https://www.youtube.com/results?search_query=${query.replace(" ", "+")}")
         val text = queryURL.readText()
         writer.println(createAnswerJson(text))
-        // FIXME writer.println("[{\"id\": \"$toSend\", \"channel\": \"some channel\", \"title\": \"some title\"}]")
     }
 
     private fun createAnswerJson(text: String): JsonArray {
@@ -54,10 +59,6 @@ object WebActions {
             array.add(videoObj)
         }
         return array
-    }
-
-    private fun empty(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
-        TinyJukebox.emptyQueue()
     }
 
     private fun upload(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
@@ -120,7 +121,7 @@ object WebActions {
 
     fun perform(writer: PrintWriter, actionType: String, length: Long, reader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
         try {
-            id2actionMap.first { it.id == actionType}.action(writer, length, reader, clientInput, attributes)
+            id2actionMap.first { it.id.toLowerCase() == actionType.toLowerCase()}.action(writer, length, reader, clientInput, attributes)
         } catch (e: Exception) {
             TinyJukebox.sendError(IllegalArgumentException("Failed to perform action: $e"))
             e.printStackTrace()
@@ -128,7 +129,7 @@ object WebActions {
     }
 
     fun isValidAction(actionType: String): Boolean {
-        return id2actionMap.any { it.id == actionType }
+        return id2actionMap.any { it.id.toLowerCase() == actionType.toLowerCase() }
     }
 
 }

@@ -16,7 +16,6 @@ function   ($, bootstrap, quote, config, about, messageHandler, playerControl) {
     quote.update(); // force the quote to appear right at the start
     setInterval(quote.update, config.quoteChangePeriod);
     var queueContainer = $("#queueContainer");
-    // TODO: configurable port
     var socket = new WebSocket(`ws://${window.location.hostname}:${config.websocketPort}`);
     console.log("Socket addr is "+`ws://${window.location.hostname}:${config.websocketPort}`);
 
@@ -25,7 +24,7 @@ function   ($, bootstrap, quote, config, about, messageHandler, playerControl) {
     };
 
     socket.onmessage = function (ev) {
-        console.log(ev.data);
+//        console.log(ev.data);
         var lines = ev.data.split("\n");
         messageHandler(lines);
     };
@@ -70,16 +69,6 @@ function   ($, bootstrap, quote, config, about, messageHandler, playerControl) {
             transferDiv.innerHTML = "Cancelled";
         }
         return xhttp;
-    }
-
-    function empty() {
-        var xhttp = initHttpRequest("empty");
-        xhttp.setRequestHeader("Content-Type", "application/octet-stream");
-        xhttp.send(null);
-    }
-
-    if(document.getElementById("empty")) {
-        document.getElementById("empty").onclick = empty;
     }
 
     function uploadLocal() {

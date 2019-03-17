@@ -15,7 +15,7 @@ object AuthChecker {
             val password = reader.readLine()
 
             val adminAccountFile = File(getOrMkdirAuthFolder(), username)
-            if(adminAccountFile.exists()) {
+            if(adminAccountFile.exists() && !adminAccountFile.isDirectory) {
                 // ensure the password is correct by using SHA-256 on the given password and checking that it is the same hash that the one stored inside the file
                 val sha256 = MessageDigest.getInstance("SHA-256")
                 val passwordSha256 = sha256.digest(password.toByteArray(StandardCharsets.UTF_8))

@@ -1,5 +1,5 @@
-define(['jquery', 'bootstrap', 'playerControl', 'auth'],
-function($, bootstrap, playerControl, auth) {
+define(['jquery', 'bootstrap', 'playerControl', 'auth', 'quote'],
+function($, bootstrap, playerControl, auth, quote) {
     var playingContainer = $("#playingContainer");
     var queueContainer = $("#queueContainer");
     var alertContainer = $("#alertContainer");
@@ -53,6 +53,10 @@ function($, bootstrap, playerControl, auth) {
                     </div>
                     `
                 );
+                break;
+
+            case "quote":
+                quote.handleNewQuote(lines[1]);
                 break;
         }
     };

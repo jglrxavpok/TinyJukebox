@@ -137,4 +137,10 @@ object TinyJukebox {
         }
     }
 
+    fun sendQuote(currentQuote: String) {
+        if(this::websocket.isInitialized) {
+            websocket.broadcast("quote\n$currentQuote")
+        }
+    }
+
 }

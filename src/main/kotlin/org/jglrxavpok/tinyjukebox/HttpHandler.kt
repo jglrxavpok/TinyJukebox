@@ -1,6 +1,7 @@
 package org.jglrxavpok.tinyjukebox
 
 import html.htmlErrorCodeToName
+import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
@@ -11,16 +12,9 @@ import kotlin.random.Random
 
 class HttpHandler(val client: Socket): Thread("Client $client") {
 
-    companion object {
-        val quotes by lazy {
-            val text = HttpHandler::class.java.getResourceAsStream("/quotes_intech.txt")?.reader()?.readText() ?: "No quotes :c"
-            text.split('\n')
-        }
-    }
     val rootPath = Paths.get("/")
     val writer = PrintWriter(OutputStreamWriter(client.getOutputStream()))
     val reader = BufferedReader(InputStreamReader(client.getInputStream()))
-    val random = Random(System.currentTimeMillis())
 
     override fun run() {
         val request = reader.readLine()
@@ -71,8 +65,8 @@ class HttpHandler(val client: Socket): Thread("Client $client") {
         // special cases
         when(location) {
             "/quote" -> {
-                htmlError(200, "Content-Type: text/plain")
-                writer.println(quotes.random(random))
+                htmlError(200, "Content-Type: text/plain; charset=utf-8")
+                writer.println(QuoteThread.currentQuote)
                 return
             }
         }
@@ -102,6 +96,7 @@ class HttpHandler(val client: Socket): Thread("Client $client") {
 
     fun htmlError(errorCode: Int, vararg headerParameters: String) {
         writer.println("HTTP/1.1 $errorCode ${htmlErrorCodeToName[errorCode]}")
+        writer.println("Content-Type: text/html; charset=utf-8")
         for(param in headerParameters) {
             writer.println(param)
         }

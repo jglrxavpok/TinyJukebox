@@ -13,8 +13,7 @@ requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler', 
 function   ($, bootstrap, quote, config, about, messageHandler, playerControl) {
     $('.alert').alert();
 
-    quote.update(); // force the quote to appear right at the start
-    setInterval(quote.update, config.quoteChangePeriod);
+    quote.init(); // force the quote to appear right at the start
     var queueContainer = $("#queueContainer");
     var socket = new WebSocket(`ws://${window.location.hostname}:${config.websocketPort}`);
     console.log("Socket addr is "+`ws://${window.location.hostname}:${config.websocketPort}`);

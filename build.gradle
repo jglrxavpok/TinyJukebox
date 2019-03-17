@@ -14,9 +14,6 @@ repositories {
 }
 
 dependencies {
-    // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-runtime
-    compile group: 'org.jetbrains.kotlin', name: 'kotlin-runtime', version: '1.2.71'
-
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
     // https://mvnrepository.com/artifact/org.jcraft/jorbis

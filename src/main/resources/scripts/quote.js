@@ -1,6 +1,6 @@
 define(["jquery", "config"], function($, config) {
     var obj = {
-        update: function() { // update quote by fading-out the old one and fading-in the new one
+        init: function() {
             var quoteRequest = new XMLHttpRequest();
             quoteRequest.open('GET', '/quote', true);
             quoteRequest.send(null);
@@ -8,21 +8,25 @@ define(["jquery", "config"], function($, config) {
                 if (quoteRequest.readyState === 4 && quoteRequest.status === 200) {
                     var type = quoteRequest.getResponseHeader('Content-Type');
                     if (type.indexOf("text") !== 1) {
-                        var response = quoteRequest.responseText;
-                        if(response.indexOf("|||") !== -1) {
-                            var parts = response.split("|||");
-                            if(parts.length < 3)
-                                obj.setNewQuote(parts[0], parts[1].trim());
-                            else
-                                obj.setNewQuote(parts[0], parts[1].trim(), parts[2].trim());
-                        } else {
-                            obj.setNewQuote(response, "Anonymous");
-                        }
+                        obj.handleNewQuote(quoteRequest.responseText);
                     }
                 }
             };
         },
 
+        handleNewQuote(response) {
+            if(response.indexOf("|||") !== -1) {
+                var parts = response.split("|||");
+                if(parts.length < 3)
+                    obj.setNewQuote(parts[0], parts[1].trim());
+                else
+                    obj.setNewQuote(parts[0], parts[1].trim(), parts[2].trim());
+            } else {
+                obj.setNewQuote(response, "Anonymous");
+            }
+        },
+
+        // update quote by fading-out the old one and fading-in the new one
         setNewQuote: function(quote, author, source) {
             console.log("quote: "+quote+", "+author+", "+source);
             var quoteContainer = $("#quoteContainer");

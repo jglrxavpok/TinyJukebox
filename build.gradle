@@ -14,6 +14,9 @@ repositories {
 }
 
 dependencies {
+    // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-runtime
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-runtime', version: '1.2.71'
+
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
     // https://mvnrepository.com/artifact/org.jcraft/jorbis
@@ -41,16 +44,23 @@ dependencies {
     compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
 }
 
-//create a single Jar with all dependencies
-task fatJar(type: Jar) {
+task copyRuntimeLibs(type: Copy) {
+    into "build/libs"
+    from configurations.runtime
+}
+
+jar.dependsOn copyRuntimeLibs
+
+jar {
     manifest {
-        attributes 'Implementation-Title': 'TinyJukebox FatJar',
-                'Implementation-Version': version,
-                'Main-Class': 'BootstrapKt'
+        attributes(
+            'Implementation-Title': 'TinyJukebox',
+            'Implementation-Version': version,
+            'Main-Class': 'BootstrapKt',
+            'Class-Path': configurations.compile.collect { it.getName() }.join(' ')
+        )
     }
-    baseName = project.name + '-all'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
+    baseName = project.name
 }
 
 compileKotlin {

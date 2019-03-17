@@ -37,7 +37,7 @@ private fun prompt(message: String, password: Boolean): CharArray {
             console.readPassword("$message: ")
         }
     } else {
-        println("Username: ")
+        println("$message: ")
         scanner.nextLine().toCharArray()
     }
 }

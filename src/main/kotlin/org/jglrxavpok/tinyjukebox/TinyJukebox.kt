@@ -105,7 +105,7 @@ object TinyJukebox {
         // send update if necessary
         if(hasUpdated) {
             if(currentlyPlaying) {
-                val duration = playerState.duration
+                val duration = currentMusic!!.duration
                 val percent = position!!.toDouble()/duration.toDouble()
                 websocket.sendPlayerUpdate(true, playerState.currentMusic!!.name, position.toMinutesAndSeconds(), duration.toMinutesAndSeconds(), percent)
             } else {
@@ -113,12 +113,6 @@ object TinyJukebox {
                 websocket.sendPlayerUpdate(false)
             }
         }
-    }
-
-    private fun Long.toMinutesAndSeconds(): String {
-        val seconds = this / 1_000
-        val minutes = seconds / 60
-        return "$minutes:${String.format("%02d", seconds % 60)}"
     }
 
     fun sendError(error: Exception) {

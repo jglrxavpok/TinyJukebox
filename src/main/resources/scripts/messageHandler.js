@@ -7,11 +7,30 @@ function($, bootstrap, playerControl, auth, quote) {
     return function(lines) {
         switch (lines[0]) {
             case "queue":
-                var queueHTML = "<ol>";
+                var queueHTML = `                
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Name</th>
+                      <th scope="col">Duration</th>
+                      <th scope="col">Controls</th>
+                    </tr>
+                  </thead>
+                  <tbody>`;
                 for (let i = 1; i < lines.length; i++) {
-                    queueHTML += "<li><i>"+lines[i]+`</i> <a href='#' class='queueRemoval' data-name='${lines[i]}'>&times;</a></li>`;
+                    //queueHTML += "<tr><i>"+lines[i]+`</i> <a href='#' class='queueRemoval' data-name='${lines[i]}'>&times;</a></tr>`;
+                    var musicObj = JSON.parse(lines[i]);
+                    queueHTML += `
+                    <tr>
+                        <th scope="row">${i}</th>
+                        <td>${musicObj.title}</td>
+                        <td>${musicObj.duration}</td>
+                        <td><a href='#' class='queueRemoval' data-name='${musicObj.title}'><h5 class="display-5">&times;</h5></a></td>
+                    </tr>
+                    `;
                 }
-                queueHTML += "</ol>";
+                queueHTML += "</tbody></table>";
                 queueContainer.html(queueHTML);
 
                 $(".queueRemoval").each(function() {
@@ -31,9 +50,16 @@ function($, bootstrap, playerControl, auth, quote) {
                     var totalTime = lines[4];
                     var percent = Math.round(lines[5]*1000)/10;
                     playingContainer.html(`
-                        <h1>Currently playing: <i>${name}</i> (${currentTime} - ${totalTime})</h1>
-                        <div class="progress">
-                          <div class="progress-bar bg-success" role="progressbar" style="width: ${percent}%" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="border rounded m-1">
+                            <p class="fluid-container text-center"><h3 class="display-3 text-center">${name}</h3></p>
+                            <div class="d-flex justify-content-between">
+                                <div>0:00</div>
+                                <div style="position: absolute; left: ${percent}%;"><h4 class="display-6">↓ ${currentTime}</h4></div>
+                                <div>${totalTime}</div>
+                            </div>
+                            <div class="progress">
+                              <div class="progress-bar bg-success" role="progressbar" style="width: ${percent}%" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
                         </div>
                         `);
                 } else {

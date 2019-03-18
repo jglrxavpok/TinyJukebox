@@ -8,16 +8,14 @@ import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.SourceDataLine
 import javax.sound.sampled.DataLine
 
-class State(var currentMusic: Music? = null, var duration: Long = 1L, var format: AudioFormat? = null) {
+class State(var currentMusic: Music? = null, var format: AudioFormat? = null) {
     fun isPlaying() = currentMusic != null
 
     fun setPlaying(
         music: Music?,
-        duration: Long,
         format: AudioFormat?
     ) {
         this.currentMusic = music
-        this.duration = duration
         this.format = format
     }
 }
@@ -59,7 +57,7 @@ object MusicPlayer: Thread("Music Player") {
                     val buffer = ByteArray(1024*8*1024)
                     bytesRead = 0
 
-                    state.setPlaying(music, music.source.computeDurationInMillis(), din.format)
+                    state.setPlaying(music, din.format)
                     println(">> Playing ${music.name} / ${music.source}")
                     println(">> Format is ${din.format} ${din.format.frameRate} - ${din.format.frameSize}")
 
@@ -88,7 +86,7 @@ object MusicPlayer: Thread("Music Player") {
                     //Block and wait for internal buffer of the data line to empty.
                     sourceDataLine.flush()
                     sourceDataLine.close()
-                    state.setPlaying(null, 0, null)
+                    state.setPlaying(null, null)
                     bytesRead = 0
                     updateClients()
                 } else {
@@ -97,7 +95,7 @@ object MusicPlayer: Thread("Music Player") {
             } catch (e: Exception) {
                 TinyJukebox.sendError(e)
                 e.printStackTrace()
-                state.setPlaying(null, 0, null)
+                state.setPlaying(null, null)
             }
 
 

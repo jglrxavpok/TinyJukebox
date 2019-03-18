@@ -1,9 +1,11 @@
 package org.jglrxavpok.tinyjukebox.websocket
 
+import com.google.gson.JsonObject
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 import org.jglrxavpok.tinyjukebox.TinyJukebox
+import org.jglrxavpok.tinyjukebox.toMinutesAndSeconds
 import java.lang.Exception
 import java.lang.StringBuilder
 import java.net.InetSocketAddress
@@ -33,7 +35,10 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
         val message = StringBuilder("queue")
         for(music in queue) {
             message.append("\n")
-            message.append(music.name)
+            val jsonObj = JsonObject()
+            jsonObj.addProperty("title", music.name)
+            jsonObj.addProperty("duration", music.duration.toMinutesAndSeconds())
+            message.append(jsonObj.toString())
         }
         return message.toString()
     }

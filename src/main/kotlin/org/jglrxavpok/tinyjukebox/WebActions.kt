@@ -104,7 +104,8 @@ object WebActions {
         target.close()
 
         println("file size=${file.length()}")
-        return Music(file.nameWithoutExtension, FileSource(file))
+        val source = FileSource(file)
+        return Music(file.nameWithoutExtension, source, source.computeDurationInMillis())
     }
 
     private fun uploadYoutube(clientReader: BufferedReader, attributes: Map<String, String>): Music? {

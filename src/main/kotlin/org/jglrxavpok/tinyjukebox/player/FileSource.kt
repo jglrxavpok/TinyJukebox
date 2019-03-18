@@ -6,8 +6,12 @@ import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
 
+/**
+ * A music source based on an uploaded file
+ */
 class FileSource(val file: File): MusicSource {
     override fun computeDurationInMillis(): Long {
+        // extract duration information from the format
         val length = file.length()
         val fileFormat = AudioSystem.getAudioFileFormat(file)
         val format = fileFormat.format

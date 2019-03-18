@@ -26,7 +26,7 @@ function($, bootstrap, playerControl, auth, quote) {
                         <th scope="row">${i}</th>
                         <td>${musicObj.title}</td>
                         <td>${musicObj.duration}</td>
-                        <td><a href='#' class='queueRemoval' data-name='${musicObj.title}'><h5 class="display-5">&times;</h5></a></td>
+                        <td><a href='#' class='queueRemoval' data-name="${musicObj.title.replace(/"/g, '\\\"')}"><h5 class="display-5">&times;</h5></a></td>
                     </tr>
                     `;
                 }
@@ -48,6 +48,7 @@ function($, bootstrap, playerControl, auth, quote) {
                     var name = lines[2];
                     var currentTime = lines[3];
                     var totalTime = lines[4];
+                    document.title="♪ TinyJukebox - "+name+` (${totalTime})`;
                     var percent = Math.round(lines[5]*1000)/10;
                     playingContainer.html(`
                         <div class="border rounded m-1">
@@ -63,7 +64,12 @@ function($, bootstrap, playerControl, auth, quote) {
                         </div>
                         `);
                 } else {
-                    playingContainer.html("<h1>Not playing anything</h1>")
+                    document.title="TinyJukebox";
+                    playingContainer.html(`
+                        <div class="border rounded m-1">
+                            <p class="fluid-container text-center"><h3 class="display-3 text-center">¯\\_(ツ)_/¯ Not playing anything ¯\\_(ツ)_/¯</h3></p>
+                        </div>
+                        `);
                 }
                 break;
 

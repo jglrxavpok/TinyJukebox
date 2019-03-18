@@ -8,6 +8,9 @@ import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.SourceDataLine
 import javax.sound.sampled.DataLine
 
+/**
+ * Current state of the MusicPlayer thread
+ */
 class State(var currentMusic: Music? = null, var format: AudioFormat? = null) {
     fun isPlaying() = currentMusic != null
 
@@ -20,11 +23,23 @@ class State(var currentMusic: Music? = null, var format: AudioFormat? = null) {
     }
 }
 
+/**
+ * Thread playing the music
+ */
 object MusicPlayer: Thread("Music Player") {
 
+    /**
+     * Number of bytes read in the current audio stream (used to compute current position)
+     */
     var bytesRead: Long = 0
     var state = State()
-    private var lastCheck = 0L
+    /**
+     * Last time a player state was sent to the clients
+     */
+    private var lastUpdate = 0L
+    /**
+     * Has a skip been requested for the current music?
+     */
     private var skipRequested = false
 
     override fun run() {
@@ -107,9 +122,9 @@ object MusicPlayer: Thread("Music Player") {
      * Send an update to clients about the current state of the player if the last call to this function was more than 250ms ago
      */
     private fun updateClients() {
-        if(System.currentTimeMillis()-lastCheck > 250) { // every 1/4th of a second
+        if(System.currentTimeMillis()-lastUpdate > 250) { // every 1/4th of a second
             TinyJukebox.sendPlayerUpdateIfNecessary()
-            lastCheck = System.currentTimeMillis()
+            lastUpdate = System.currentTimeMillis()
         }
     }
 

@@ -10,18 +10,17 @@ import org.jglrxavpok.tinyjukebox.player.YoutubeSource
 import java.io.*
 import java.lang.Exception
 import java.net.URL
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.*
 import java.util.regex.Pattern
 
 object WebActions {
 
-    val gson = Gson()
-    //val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?title=\"(?<NAME>.*?)\".*?</div></div></div></li>")
     val pattern = Pattern.compile(
         "<span class=\"video-time\".+?(?=>)>(?<DURATION>.*?)<\\/span><\\/span><\\/div><\\/a>(.|\\n)+?(?=<\\/span><\\/li><\\/ul><\\/button>)<\\/span><\\/li><\\/ul><\\/button>(.|\\n)*?(?=<div class=\"yt-lockup-content\")<div class=\"yt-lockup-content\">.*?href=\"\\/watch\\?v=(?<ID>.*?)\".*?title=\"(?<NAME>.*?)\".*?<a href=\"\\/(user|channel)\\/.+?\" class=\"yt-uix-sessionlink.*?>(?<CHANNEL>.*?)<"
     )
-    //val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?title=\"(?<NAME>.*?)\".*?</div></div></div></li>")
 
     open class Action(val id: String, val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>) -> Unit)
 
@@ -42,25 +41,29 @@ object WebActions {
     private fun ytsearch(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
         val query = clientReader.readLine()
         val queryURL = URL("https://www.youtube.com/results?search_query=${query.replace(" ", "+")}")
-        val text = queryURL.readText()
+        val text = queryURL.readText(StandardCharsets.UTF_8)
+
       // for debug  File("./tmp.txt").writeText(text)
-        writer.println(createAnswerJson(text))
+        val interestingPart = text.substring(text.indexOf("<span class=\"video-time\"") .. text.lastIndexOf("</a></div><div class=\"yt-lockup-meta \""))
+        // for debug  File("./tmp2.txt").writeText(interestingPart)
+        writer.println(createAnswerJson(interestingPart))
     }
 
     private fun createAnswerJson(text: String): JsonArray {
         val array = JsonArray()
         val matcher = pattern.matcher(text)
         while(matcher.find()) {
-            val title = matcher.group("NAME")
-            val id = matcher.group("ID")
-            val channel = matcher.group("CHANNEL")
-            val duration = matcher.group("DURATION")
+            val title = matcher.group("NAME").toByteArray().toString(Charsets.UTF_8)
+            val id = matcher.group("ID").toByteArray().toString(Charsets.UTF_8)
+            val channel = matcher.group("CHANNEL").toByteArray().toString(Charsets.UTF_8)
+            val duration = matcher.group("DURATION").toByteArray().toString(Charsets.UTF_8)
 
             val videoObj = JsonObject()
             videoObj.addProperty("title", title)
             videoObj.addProperty("id", id)
             videoObj.addProperty("channel", channel)
             videoObj.addProperty("duration", duration)
+
             array.add(videoObj)
         }
         return array

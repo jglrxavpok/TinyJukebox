@@ -8,7 +8,14 @@ import java.lang.IllegalArgumentException
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
+/**
+ * Checks authentification of users to perform certain actions
+ */
 object AuthChecker {
+
+    /**
+     * Generates a function to be used in WebActions
+     */
     fun checkAuth(callback: ((PrintWriter, BufferedReader) -> Unit)?): (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>) -> Unit {
         return { writer, length, reader, input, attributes ->
             val username = reader.readLine()
@@ -37,6 +44,9 @@ object AuthChecker {
         }
     }
 
+    /**
+     * Gets the auth folder or generates it if needed
+     */
     fun getOrMkdirAuthFolder(): File {
         val folder = File("./auth")
         if(!folder.exists())
@@ -44,6 +54,9 @@ object AuthChecker {
         return folder
     }
 
+    /**
+     * Adds a new admin account to the authenfication system
+     */
     fun addNewAdminAccount(username: String, password: CharArray) {
         val sha256 = MessageDigest.getInstance("SHA-256")
         val adminAccountFile = File(getOrMkdirAuthFolder(), username)
@@ -51,6 +64,7 @@ object AuthChecker {
             throw IllegalArgumentException("Account already exists")
         }
 
+        // convert to hex
         adminAccountFile.writeText(sha256.digest(password.map { it.toByte() }.toByteArray()).joinToString("") { it.toString(16) })
     }
 }

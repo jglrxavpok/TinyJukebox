@@ -60,15 +60,18 @@ object MusicPlayer: Thread("Music Player") {
                         baseFormat.getSampleRate(),
                         false
                     )
+                    // change format to one that is playable
                     val din = AudioSystem.getAudioInputStream(decodedFormat, input)
 
                     val timeoutInput = TimeoutInputStream(din, 1000)
 
+                    // audio output
                     val dataLineInfo = DataLine.Info(SourceDataLine::class.java, decodedFormat)
                     val sourceDataLine = AudioSystem.getLine(dataLineInfo) as SourceDataLine
                     sourceDataLine.open(decodedFormat)
                     sourceDataLine.start()
 
+                    // read buffer
                     val buffer = ByteArray(1024*8*1024)
                     bytesRead = 0
 
@@ -85,12 +88,12 @@ object MusicPlayer: Thread("Music Player") {
                                 //Write data to the internal buffer of the data line where it will be delivered to the speaker.
                                 sourceDataLine.write(buffer, 0, cnt)
 
-                                updateClients()
+                                updateClients() // send playing state to clients if necessary
                             }
 
                             if(skipRequested) {
                                 skipRequested = false
-                                break
+                                break // breaks out of reading -> skips current music
                             }
                         } catch (e: Exception) {
                             timeoutInput.close()
@@ -101,6 +104,7 @@ object MusicPlayer: Thread("Music Player") {
                     //Block and wait for internal buffer of the data line to empty.
                     sourceDataLine.flush()
                     sourceDataLine.close()
+
                     state.setPlaying(null, null)
                     bytesRead = 0
                     updateClients()

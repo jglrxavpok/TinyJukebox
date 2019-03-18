@@ -1,6 +1,5 @@
 package org.jglrxavpok.tinyjukebox
 
-import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import org.jglrxavpok.tinyjukebox.auth.AuthChecker
@@ -8,36 +7,52 @@ import org.jglrxavpok.tinyjukebox.player.FileSource
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.player.YoutubeSource
 import java.io.*
-import java.lang.Exception
 import java.net.URL
-import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.*
 import java.util.regex.Pattern
 
+/**
+ * Object responsible to act when "/action/<some location>" is requested via a POST request
+ */
 object WebActions {
 
+    /**
+     * Regex Pattern used to extract information from the Youtube search results page
+     */
     val pattern = Pattern.compile(
         "<span class=\"video-time\".+?(?=>)>(?<DURATION>.*?)<\\/span><\\/span><\\/div><\\/a>(.|\\n)+?(?=<\\/span><\\/li><\\/ul><\\/button>)<\\/span><\\/li><\\/ul><\\/button>(.|\\n)*?(?=<div class=\"yt-lockup-content\")<div class=\"yt-lockup-content\">.*?href=\"\\/watch\\?v=(?<ID>.*?)\".*?title=\"(?<NAME>.*?)\".*?<a href=\"\\/(user|channel)\\/.+?\" class=\"yt-uix-sessionlink.*?>(?<CHANNEL>.*?)<"
     )
 
+    /**
+     * An action
+     */
     open class Action(val id: String, val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>) -> Unit)
 
-    val id2actionMap = listOf(
-        Action("upload", this::upload),
-        Action("ytsearch", this::ytsearch),
-        Action("auth", AuthChecker.checkAuth(null)),
-        Action("playercontrol/empty", AuthChecker.checkAuth { writer, reader -> TinyJukebox.emptyQueue()}),
-        Action("playercontrol/skip", AuthChecker.checkAuth { writer, reader -> MusicPlayer.skip()}),
-        Action("playercontrol/remove", AuthChecker.checkAuth(this::removeFromQueue))
+    /**
+     * List of all actions supported by TinyJukebox
+     */
+    val actionList = listOf(
+        Action("upload", this::upload), // upload a local or a youtube link
+        Action("ytsearch", this::ytsearch), // search a video on YT
+        Action("auth", AuthChecker.checkAuth(null)), // check authenfication
+        Action("playercontrol/empty", AuthChecker.checkAuth { writer, reader -> TinyJukebox.emptyQueue()}), // empty the current queue, requires authentification
+        Action("playercontrol/skip", AuthChecker.checkAuth { writer, reader -> MusicPlayer.skip()}), // skips the current track, requires authentification
+        Action("playercontrol/remove", AuthChecker.checkAuth(this::removeFromQueue)) // remove the current track, requires authentification
     )
 
+    /**
+     * Remove tracks named as given by the client in 'clientReader'0
+     */
     private fun removeFromQueue(writer: PrintWriter, clientReader: BufferedReader) {
         val nameToRemove = clientReader.readLine()
         TinyJukebox.removeFromQueue(nameToRemove)
     }
 
+    /**
+     * Searches Youtube for the query given by the client in 'clientReader'/'clientInput'
+     */
     private fun ytsearch(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
         val query = clientReader.readLine()
         val queryURL = URL("https://www.youtube.com/results?search_query=${query.replace(" ", "+")}")
@@ -49,6 +64,10 @@ object WebActions {
         writer.println(createAnswerJson(interestingPart))
     }
 
+    /**
+     * Generates the JSON sent to the client that requested a Youtube search
+     * Contains the name, video id, channel and duration of results
+     */
     private fun createAnswerJson(text: String): JsonArray {
         val array = JsonArray()
         val matcher = pattern.matcher(text)
@@ -81,12 +100,18 @@ object WebActions {
         }
     }
 
+    /**
+     * Download a file sent by the client.
+     * The file is encoded in Base64 and sent via 'clientReader'
+     */
     private fun uploadLocal(clientReader: BufferedReader, attributes: Map<String, String>): Music? {
         val filename = attributes["File-Name"]
         if(filename == null) {
             TinyJukebox.sendError(IllegalArgumentException("No file name ?! Are you trying to break me ?! >:("))
             return null
         }
+
+        // verifies that the client is not trying to access invalid files (eg by trying to access files in '../')
         val root = Paths.get("music/").toAbsolutePath()
         val localFilePath = Paths.get("music/$filename").toAbsolutePath()
         val f = localFilePath.toFile()
@@ -103,42 +128,42 @@ object WebActions {
         if(!file.parentFile.exists()) {
             file.parentFile.mkdirs() // TODO check error
         }
-        val target = BufferedOutputStream(FileOutputStream(file))
 
+        // saves the downloaded file
+        val target = BufferedOutputStream(FileOutputStream(file))
         val line = clientReader.readLine()
         val input = Base64.getMimeDecoder().decode(line.substringAfter(";base64,"))
         target.write(input)
         target.flush()
         target.close()
 
-        println("file size=${file.length()}")
         val source = FileSource(file)
         return Music(file.nameWithoutExtension, source, source.computeDurationInMillis())
     }
 
     private fun uploadYoutube(clientReader: BufferedReader, attributes: Map<String, String>): Music? {
+        // simply create the source from the given url
         val url = clientReader.readLine()
         return Music(YoutubeSource(url))
     }
 
-    private fun extractDestination(logFile: String): String {
-        val prefix = "[download] Destination: "
-        return logFile.lines().first {
-            it.startsWith(prefix)
-        }.substring(prefix.length).substringBeforeLast(".")+".mp3"
-    }
-
+    /**
+     * Perform an action from 'actionList' based on 'actionType' and the data the client is sending
+     */
     fun perform(writer: PrintWriter, actionType: String, length: Long, reader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
         try {
-            id2actionMap.first { it.id.toLowerCase() == actionType.toLowerCase()}.action(writer, length, reader, clientInput, attributes)
+            actionList.first { it.id.toLowerCase() == actionType.toLowerCase()}.action(writer, length, reader, clientInput, attributes)
         } catch (e: Exception) {
             TinyJukebox.sendError(IllegalArgumentException("Failed to perform action: $e"))
             e.printStackTrace()
         }
     }
 
+    /**
+     * Checks if a given action type exists
+     */
     fun isValidAction(actionType: String): Boolean {
-        return id2actionMap.any { it.id.toLowerCase() == actionType.toLowerCase() }
+        return actionList.any { it.id.toLowerCase() == actionType.toLowerCase() }
     }
 
 }

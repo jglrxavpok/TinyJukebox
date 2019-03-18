@@ -10,9 +10,17 @@ import java.net.Socket
 import java.nio.file.Paths
 import kotlin.random.Random
 
-class HttpHandler(val client: Socket): Thread("Client $client") {
+/**
+ * Thread to handle HTTP requests from a client
+ */
+class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
 
+    /**
+     * Path representing the root of the music folder
+     */
     val rootPath = Paths.get("/")
+
+    // Helper objects for communication
     val writer = PrintWriter(OutputStreamWriter(client.getOutputStream()))
     val reader = BufferedReader(InputStreamReader(client.getInputStream()))
 
@@ -31,6 +39,10 @@ class HttpHandler(val client: Socket): Thread("Client $client") {
         client.close()
     }
 
+    /**
+     * Handles a POST request
+     * @param location the requested location
+     */
     fun post(location: String) {
         // remove header info
         var length: Long = -1
@@ -61,6 +73,10 @@ class HttpHandler(val client: Socket): Thread("Client $client") {
         }
     }
 
+    /**
+     * Handles a GET request
+     * @param location the requested location
+     */
     fun get(location: String) {
         // special cases
         when(location) {
@@ -88,12 +104,18 @@ class HttpHandler(val client: Socket): Thread("Client $client") {
         )
     }
 
+    /**
+     * Sends a given page or sends a 404 error
+     */
     private fun serve(pageName: String) {
         val html = javaClass.getResourceAsStream(pageName)?.reader()?.readText() ?: return htmlError(404)
         htmlError(200)
         writer.println(html)
     }
 
+    /**
+     * Writes a HTTP header corresponding to the given error code with the given parameters
+     */
     fun htmlError(errorCode: Int, vararg headerParameters: String) {
         writer.println("HTTP/1.1 $errorCode ${htmlErrorCodeToName[errorCode]}")
         writer.println("Content-Type: text/html; charset=utf-8")

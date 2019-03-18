@@ -10,6 +10,9 @@ import java.lang.Exception
 import java.lang.StringBuilder
 import java.net.InetSocketAddress
 
+/**
+ * Represents the WebSocket server
+ */
 class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(address) {
     override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) {
         conn?.send("Welcome!")
@@ -26,10 +29,16 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
         }
     }
 
+    /**
+     * Send the contents of the queue to all clients
+     */
     fun sendQueueToEveryone() {
         broadcast(buildQueueMessage())
     }
 
+    /**
+     * Prepares the WebSocket message to update the state of the queue on clients
+     */
     private fun buildQueueMessage(): String {
         val queue = TinyJukebox.createCopyOfQueue()
         val message = StringBuilder("queue")

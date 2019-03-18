@@ -4,9 +4,15 @@ import org.jglrxavpok.tinyjukebox.PipingThread
 import java.io.*
 import java.nio.channels.Pipe
 
+/**
+ * Represents music streamed from YouTube using youtube-dl
+ */
 class YoutubeSource(val url: String): MusicSource {
     private var duration: Long = -1
 
+    /**
+     * Compute music duration in millis from youtube-dl info
+     */
     override fun computeDurationInMillis(): Long {
         if(duration < 0) {
             val process = ProcessBuilder()
@@ -30,6 +36,9 @@ class YoutubeSource(val url: String): MusicSource {
         return duration
     }
 
+    /**
+     * Creates an audio stream from YT
+     */
     override fun createStream(): InputStream {
         println("Attempting to read music from YT url: $url")
         val process = ProcessBuilder()
@@ -39,7 +48,6 @@ class YoutubeSource(val url: String): MusicSource {
         ytdl.redirectError(tmp)
 
         val ffmpeg = ProcessBuilder().command("ffmpeg", "-i", "-", "-f", "mp3", "-vn", "-")
-        val vlc = ProcessBuilder().command("vlc", "-")
         val ytdlProcess = ytdl.start()
         val ffmpegProcess = ffmpeg.start()
         // val vlcProcess = vlc.start()

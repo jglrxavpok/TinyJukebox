@@ -27,13 +27,17 @@ function sendRequest(query) {
             var videoID = item.id;
             var title = item.title;
             var channel = item.channel;
+            var duration = item.duration;
             var thumbnail = "https://i.ytimg.com/vi/"+videoID+"/mqdefault.jpg";
             htmlContent +=
                 `
                     <div class="col-md-5" style="margin: 10px;">
                         <a class="videoSelect" href="#" data-videoid="${videoID}">
                             <div class="yt-preview">
-                                <img src='${thumbnail}' alt='Thumbnail for ${title}'/>
+                                <div class="container">
+                                    <img src='${thumbnail}' style="width:100%;" alt='Thumbnail for ${title}'/>
+                                    <div class="bg-dark text-right text-light bottom-right">${duration}</div>
+                                </div>
                                 <div class="yt-details"><b>${title}<br/>${channel}</b></div> 
                             </div>
                         </a>

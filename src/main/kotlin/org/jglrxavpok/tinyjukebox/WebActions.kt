@@ -18,7 +18,7 @@ object WebActions {
 
     val gson = Gson()
     //val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?title=\"(?<NAME>.*?)\".*?</div></div></div></li>")
-    val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?href=\"/watch\\?v=(?<ID>.*?)\".*?title=\"(?<NAME>.*?)\".*?<a href=\"/(user|channel)/.*?\" class=\"yt-uix-sessionlink.*?>(?<CHANNEL>.*?)<.*?</div></div></div></li>")
+    val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?href=\"/watch\\?v=(?<ID>.*?)\".*?title=\"(?<NAME>.*?)\".*?<a href=\"/(user|channel)/.*?\" class=\"yt-uix-sessionlink.*?>(?<CHANNEL>.*?)<.*?</div></div></div></li>\\n\\n<li>.*\\n.*\\n<span class=\"video-time\".+?(?=>)>(?<DURATION>.*?)</span>")
     //val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?title=\"(?<NAME>.*?)\".*?</div></div></div></li>")
 
     open class Action(val id: String, val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>) -> Unit)
@@ -41,6 +41,7 @@ object WebActions {
         val query = clientReader.readLine()
         val queryURL = URL("https://www.youtube.com/results?search_query=${query.replace(" ", "+")}")
         val text = queryURL.readText()
+      // for debug  File("./tmp.txt").writeText(text)
         writer.println(createAnswerJson(text))
     }
 
@@ -51,11 +52,13 @@ object WebActions {
             val title = matcher.group("NAME")
             val id = matcher.group("ID")
             val channel = matcher.group("CHANNEL")
+            val duration = matcher.group("DURATION")
 
             val videoObj = JsonObject()
             videoObj.addProperty("title", title)
             videoObj.addProperty("id", id)
             videoObj.addProperty("channel", channel)
+            videoObj.addProperty("duration", duration)
             array.add(videoObj)
         }
         return array

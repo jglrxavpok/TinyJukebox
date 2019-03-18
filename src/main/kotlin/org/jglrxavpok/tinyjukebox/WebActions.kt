@@ -18,7 +18,9 @@ object WebActions {
 
     val gson = Gson()
     //val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?title=\"(?<NAME>.*?)\".*?</div></div></div></li>")
-    val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?href=\"/watch\\?v=(?<ID>.*?)\".*?title=\"(?<NAME>.*?)\".*?<a href=\"/(user|channel)/.*?\" class=\"yt-uix-sessionlink.*?>(?<CHANNEL>.*?)<.*?</div></div></div></li>\\n\\n<li>.*\\n.*\\n<span class=\"video-time\".+?(?=>)>(?<DURATION>.*?)</span>")
+    val pattern = Pattern.compile(
+        "<span class=\"video-time\".+?(?=>)>(?<DURATION>.*?)<\\/span><\\/span><\\/div><\\/a>(.|\\n)+?(?=<\\/span><\\/li><\\/ul><\\/button>)<\\/span><\\/li><\\/ul><\\/button>(.|\\n)*?(?=<div class=\"yt-lockup-content\")<div class=\"yt-lockup-content\">.*?href=\"\\/watch\\?v=(?<ID>.*?)\".*?title=\"(?<NAME>.*?)\".*?<a href=\"\\/(user|channel)\\/.+?\" class=\"yt-uix-sessionlink.*?>(?<CHANNEL>.*?)<"
+    )
     //val pattern = Pattern.compile("<div class=\"yt-lockup-content\">.*?title=\"(?<NAME>.*?)\".*?</div></div></div></li>")
 
     open class Action(val id: String, val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>) -> Unit)

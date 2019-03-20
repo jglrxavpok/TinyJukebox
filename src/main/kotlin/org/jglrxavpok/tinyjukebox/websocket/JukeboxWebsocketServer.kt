@@ -5,7 +5,6 @@ import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 import org.jglrxavpok.tinyjukebox.TinyJukebox
-import org.jglrxavpok.tinyjukebox.toMinutesAndSeconds
 import java.lang.Exception
 import java.lang.StringBuilder
 import java.net.InetSocketAddress
@@ -46,7 +45,7 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
             message.append("\n")
             val jsonObj = JsonObject()
             jsonObj.addProperty("title", music.name)
-            jsonObj.addProperty("duration", music.duration.toMinutesAndSeconds())
+            jsonObj.addProperty("duration", music.duration)
             message.append(jsonObj.toString())
         }
         return message.toString()
@@ -76,7 +75,7 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
      * @param duration how long is the music? (Format is: <minutes>:<seconds>)
      * @param percent how much of the music has been played?
      */
-    fun sendPlayerUpdate(actuallyPlaying: Boolean, name: String? = null, position: String? = null, duration: String? = null, percent: Double? = null) {
+    fun sendPlayerUpdate(actuallyPlaying: Boolean, name: String? = null, position: Long? = null, duration: Long? = null, percent: Double? = null) {
         val message = StringBuilder("playerUpdate")
         message.append('\n').append(actuallyPlaying)
         if(actuallyPlaying) {

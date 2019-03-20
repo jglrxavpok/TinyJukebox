@@ -8,6 +8,7 @@ import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.player.YoutubeSource
 import java.io.*
 import java.net.URL
+import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.*
@@ -39,15 +40,43 @@ object WebActions {
         Action("auth", AuthChecker.checkAuth(null)), // check authenfication
         Action("playercontrol/empty", AuthChecker.checkAuth { writer, reader -> TinyJukebox.emptyQueue()}), // empty the current queue, requires authentification
         Action("playercontrol/skip", AuthChecker.checkAuth { writer, reader -> MusicPlayer.skip()}), // skips the current track, requires authentification
-        Action("playercontrol/remove", AuthChecker.checkAuth(this::removeFromQueue)) // remove the current track, requires authentification
+        Action("playercontrol/remove", AuthChecker.checkAuth(this::removeFromQueue)), // remove the selected track, requires authentification
+        Action("playercontrol/moveup", AuthChecker.checkAuth(this::moveUp)), // move the selected track up the queue
+        Action("playercontrol/movedown", AuthChecker.checkAuth(this::moveDown)) // move the selected track up the queue
     )
 
     /**
-     * Remove tracks named as given by the client in 'clientReader'0
+     * Remove tracks named as given by the client in 'clientReader'
      */
     private fun removeFromQueue(writer: PrintWriter, clientReader: BufferedReader) {
-        val nameToRemove = clientReader.readLine()
-        TinyJukebox.removeFromQueue(nameToRemove)
+        val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
+        println("remove: $nameToRemove")
+        val index = clientReader.readLine().toInt()
+        if(!TinyJukebox.removeFromQueue(nameToRemove, index)) {
+            writer.println("invalid position")
+        }
+    }
+
+    /**
+     * Moves a track named as given by the client in 'clientReader'
+     */
+    private fun moveUp(writer: PrintWriter, clientReader: BufferedReader) {
+        val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
+        val index = clientReader.readLine().toInt()
+        if(!TinyJukebox.moveUp(nameToRemove, index)) {
+            writer.println("invalid position")
+        }
+    }
+
+    /**
+     * Moves a track named as given by the client in 'clientReader'
+     */
+    private fun moveDown(writer: PrintWriter, clientReader: BufferedReader) {
+        val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
+        val index = clientReader.readLine().toInt()
+        if(!TinyJukebox.moveDown(nameToRemove, index)) {
+            writer.println("invalid position")
+        }
     }
 
     /**

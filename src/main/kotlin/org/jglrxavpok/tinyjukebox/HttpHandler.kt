@@ -109,21 +109,42 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
      */
     private fun serve(pageName: String) {
         val resourceStream = javaClass.getResourceAsStream(pageName) ?: return htmlError(404)
-        htmlError(200)
+        htmlError(200, type=getMimeFromExtension(pageName))
         if(pageName.endsWith(".png")) {
             client.getOutputStream().write(resourceStream.readBytes())
             client.getOutputStream().flush()
         } else {
-            writer.println(resourceStream.reader().readText())
+            val text = resourceStream.reader().readText()
+            writer.println(applyVariables(text))
+        }
+    }
+
+    private fun getMimeFromExtension(pageName: String): String {
+        val extension = pageName.substringAfterLast(".")
+        return when(extension) {
+            "css" -> "text/css"
+
+            else -> "text/html"
+        }
+    }
+
+    private fun applyVariables(text: String): String {
+        return text.replace(Regex("___(?<VAR>.*?)___")) { result ->
+            val varName = result.groups["VAR"]
+            if(varName != null) {
+                Config.getFromProperties(varName.value)
+            } else {
+                result.toString()
+            }
         }
     }
 
     /**
      * Writes a HTTP header corresponding to the given error code with the given parameters
      */
-    fun htmlError(errorCode: Int, vararg headerParameters: String) {
+    fun htmlError(errorCode: Int, type: String = "text/html", vararg headerParameters: String) {
         writer.println("HTTP/1.1 $errorCode ${htmlErrorCodeToName[errorCode]}")
-        writer.println("Content-Type: text/html; charset=utf-8")
+        writer.println("Content-Type: $type; charset=utf-8")
         for(param in headerParameters) {
             writer.println(param)
         }

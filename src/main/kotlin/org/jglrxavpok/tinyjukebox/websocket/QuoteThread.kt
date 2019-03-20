@@ -1,7 +1,7 @@
 package org.jglrxavpok.tinyjukebox.websocket
 
-import org.jglrxavpok.tinyjukebox.HttpHandler
-import org.jglrxavpok.tinyjukebox.TinyJukebox
+import org.jglrxavpok.tinyjukebox.*
+import java.io.File
 import kotlin.random.Random
 
 /**
@@ -13,23 +13,24 @@ object QuoteThread: Thread("Quote thread") {
      * List of all quotes
      */
     val quotes by lazy {
-        val text = QuoteThread::class.java.getResourceAsStream("/quotes_intech.txt")?.reader()?.readText() ?: "No quotes :c"
+        val text = File(Config[Paths.quotes]).reader().readText()
         text.split('\n')
     }
     private val quoteRNG = Random(System.currentTimeMillis())
     var currentQuote = quotes.random(quoteRNG)
 
-    // TODO: configurable
     /**
      * Delay between quote changes
      */
-    const val quoteDelay = 15000L
-
     override fun run() {
         while(!interrupted()) {
-            currentQuote = quotes.random(quoteRNG)
+            var newQuote: String
+            do {
+                newQuote = quotes.random(quoteRNG)
+            } while(newQuote == currentQuote)
+            currentQuote = newQuote
             TinyJukebox.sendQuote(currentQuote)
-            Thread.sleep(quoteDelay)
+            Thread.sleep(Config[Timings.quoteDelay])
         }
     }
 }

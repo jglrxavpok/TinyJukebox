@@ -21,7 +21,7 @@ object TinyJukebox {
     // previous state of the music player, used by sendPlayerUpdateIfNecessary
     private var currentlyPlaying: Boolean = false
     private var currentMusic: Music? = null
-    private var currentPosition: String = "-1:-1"
+    private var currentPosition: Long = -1
 
     /**
      * Adds a music to the queue and send a update to clients
@@ -127,14 +127,14 @@ object TinyJukebox {
         // copy state
         currentMusic = playerState.currentMusic
         currentlyPlaying = currentMusic != null
-        currentPosition = position?.toMinutesAndSeconds() ?: ""
+        currentPosition = position ?: -1
 
         // send update if necessary
         if(hasUpdated) {
             if(currentlyPlaying) {
                 val duration = currentMusic!!.duration
                 val percent = position!!.toDouble()/duration.toDouble()
-                websocket.sendPlayerUpdate(true, playerState.currentMusic!!.name, position.toMinutesAndSeconds(), duration.toMinutesAndSeconds(), percent)
+                websocket.sendPlayerUpdate(true, playerState.currentMusic!!.name, position, duration, percent)
             } else {
                 // not playing anything
                 websocket.sendPlayerUpdate(false)
@@ -154,14 +154,72 @@ object TinyJukebox {
     }
 
     /**
-     * Remove all tracks with the given name
+     * Remove a given track
      */
-    fun removeFromQueue(nameToRemove: String) {
-        println("Remove: '$nameToRemove'")
-        performChangesToQueue {
-            this.removeIf { it.name == nameToRemove }
+    fun removeFromQueue(nameToRemove: String, index: Int): Boolean {
+        val result = performChangesToQueue {
+            if(index < size) {
+                val foundName = this[index].name
+                if(foundName == nameToRemove) {
+                    this.removeAt(index)
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        }
+        if(result)
+            sendQueueUpdate()
+        return result
+    }
+
+    /**
+     * Move a given track up the queue
+     */
+    fun moveUp(nameToRemove: String, index: Int): Boolean {
+        val result = performChangesToQueue {
+            if(index in 1 until size) {
+                val foundName = this[index].name
+                if(foundName == nameToRemove) {
+                    val music = this.removeAt(index)
+                    this.add(index-1, music)
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        }
+        if(result)
+            sendQueueUpdate()
+        return result
+    }
+
+    /**
+    * Move a given track up the queue
+    */
+    fun moveDown(nameToRemove: String, index: Int): Boolean {
+        val result = performChangesToQueue {
+            if(index in 0 until size-1) {
+                val foundName = this[index].name
+                if(foundName == nameToRemove) {
+                    val music = this.removeAt(index)
+                    this.add(index+1, music)
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        }
+        if(result) {
             sendQueueUpdate()
         }
+        return result
     }
 
     /**

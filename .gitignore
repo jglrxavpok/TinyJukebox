@@ -14,3 +14,6 @@ build/
 music/
 quotes_intech.txt
 auth/
+config.cfg
+errors.log
+tinyjukebox.cfg

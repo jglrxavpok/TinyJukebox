@@ -45,10 +45,10 @@ define(['jquery', 'auth'], function($, auth) {
             xhttp.send(username+"\n"+password+"\n");
         },
 
-        sendRemoveRequestSupplier: function(name) {
+        sendMusicControlRequestSupplier: function(name, index, action) {
             return function(username, password) {
                 var xhttp = new XMLHttpRequest();
-                xhttp.open("POST", "/action/playerControl/remove", true);
+                xhttp.open("POST", "/action/playerControl/"+action, true);
                 xhttp.onload = function () {
                     var text = xhttp.responseText;
                     if(text.indexOf('no') !== -1) {
@@ -62,19 +62,38 @@ define(['jquery', 'auth'], function($, auth) {
                         </div>
                         `
                         );
+                    } else if(text.indexOf('invalid position') !== -1) {
+                        alertContainer.html(alertContainer.html() +
+                            `
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <strong>Error!</strong> The name sent did not correspond to the actual track at the index. Please retry. (This can happen during transitions)
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        `
+                        );
                     }
                 };
                 xhttp.setRequestHeader("Content-Type", "application/octet-stream");
-                xhttp.send(username + "\n" + password + "\n"+name+"\n");
+                xhttp.send(username + "\n" + password + "\n"+name+"\n"+index+"\n");
             }
-        }
+        },
 
+        sendRemoveRequestSupplier: function(name, index) {
+            return playerControl.sendMusicControlRequestSupplier(name, index, "remove")
+        },
+
+        sendMoveUpRequestSupplier: function(name, index) {
+            return playerControl.sendMusicControlRequestSupplier(name, index, "moveup")
+        },
+
+        sendMoveDownRequestSupplier: function(name, index) {
+            return playerControl.sendMusicControlRequestSupplier(name, index, "movedown")
+        },
     };
     $('#skipButton').on('click', function() {
         auth.requestAuth(playerControl.sendSkipRequest);
-    });
-    $('#empty').on('click', function() {
-        auth.requestAuth(playerControl.sendEmptyRequest);
     });
     return playerControl;
 });

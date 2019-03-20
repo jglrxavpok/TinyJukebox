@@ -24,7 +24,7 @@ class YoutubeSource(val url: String): MusicSource {
             if(result.contains(":")) {
                 val parts = result.split(":")
                 if(parts.size == 3) {
-                    duration = parts[0].toLong()*1000*60*24/*hours*/ + parts[2].toLong()*1000 + parts[1].toLong()*1000*60 // <minutes>:<seconds>
+                    duration = parts[0].toLong()*1000*60*60/*hours*/ + parts[2].toLong()*1000 + parts[1].toLong()*1000*60 // <minutes>:<seconds>
                 } else {
                     duration = parts[1].toLong()*1000 + parts[0].toLong()*1000*60 // <minutes>:<seconds>
                 }

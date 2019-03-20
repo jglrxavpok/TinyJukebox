@@ -58,8 +58,8 @@ object WebActions {
         val queryURL = URL("https://www.youtube.com/results?search_query=${query.replace(" ", "+")}")
         val text = queryURL.readText(StandardCharsets.UTF_8)
 
-      // for debug  File("./tmp.txt").writeText(text)
-        val interestingPart = text.substring(text.indexOf("<span class=\"video-time\"") .. text.lastIndexOf("</a></div><div class=\"yt-lockup-meta \""))
+        // for debug File("./tmp.txt").writeText(text)
+        val interestingPart = text.substring(text.indexOf("<span class=\"video-time\"") .. text.lastIndexOf("</div><div class=\"yt-lockup-meta \""))
         // for debug  File("./tmp2.txt").writeText(interestingPart)
         writer.println(createAnswerJson(interestingPart))
     }
@@ -70,20 +70,23 @@ object WebActions {
      */
     private fun createAnswerJson(text: String): JsonArray {
         val array = JsonArray()
-        val matcher = pattern.matcher(text)
-        while(matcher.find()) {
-            val title = matcher.group("NAME").toByteArray().toString(Charsets.UTF_8)
-            val id = matcher.group("ID").toByteArray().toString(Charsets.UTF_8)
-            val channel = matcher.group("CHANNEL").toByteArray().toString(Charsets.UTF_8)
-            val duration = matcher.group("DURATION").toByteArray().toString(Charsets.UTF_8)
+        val parts = text.split("/a></div><div class=\"yt-lockup-meta \"")
+        for(p in parts) {
+            val matcher = pattern.matcher(p)
+            while(matcher.find()) {
+                val title = matcher.group("NAME").toByteArray().toString(Charsets.UTF_8)
+                val id = matcher.group("ID").toByteArray().toString(Charsets.UTF_8)
+                val channel = matcher.group("CHANNEL").toByteArray().toString(Charsets.UTF_8)
+                val duration = matcher.group("DURATION").toByteArray().toString(Charsets.UTF_8)
 
-            val videoObj = JsonObject()
-            videoObj.addProperty("title", title)
-            videoObj.addProperty("id", id)
-            videoObj.addProperty("channel", channel)
-            videoObj.addProperty("duration", duration)
+                val videoObj = JsonObject()
+                videoObj.addProperty("title", title)
+                videoObj.addProperty("id", id)
+                videoObj.addProperty("channel", channel)
+                videoObj.addProperty("duration", duration)
 
-            array.add(videoObj)
+                array.add(videoObj)
+            }
         }
         return array
     }

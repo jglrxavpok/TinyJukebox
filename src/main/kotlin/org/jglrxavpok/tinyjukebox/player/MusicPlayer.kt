@@ -3,6 +3,7 @@ package org.jglrxavpok.tinyjukebox.player
 import org.jglrxavpok.tinyjukebox.Music
 import org.jglrxavpok.tinyjukebox.TinyJukebox
 import java.io.BufferedInputStream
+import java.io.InputStream
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.SourceDataLine
@@ -12,6 +13,22 @@ import javax.sound.sampled.DataLine
  * Current state of the MusicPlayer thread
  */
 class State(var currentMusic: Music? = null, var format: AudioFormat? = null) {
+    companion object {
+        val nullSource = object: MusicSource {
+            override fun createStream() = object: InputStream() {
+                override fun read() = -1
+            }
+
+            override fun computeDurationInMillis() = 1L
+
+            override fun fetchName() = "\u231B Loading \u231B" // '\u231B' is the hourglass emoji
+
+        }
+        val specialLoadingMusic = Music(nullSource)
+
+        val nullFormat = AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100f, 16, 1, 2, 4f, false)
+    }
+
     fun isPlaying() = currentMusic != null
 
     fun setPlaying(
@@ -20,6 +37,11 @@ class State(var currentMusic: Music? = null, var format: AudioFormat? = null) {
     ) {
         this.currentMusic = music
         this.format = format
+    }
+
+    fun setLoadingState() {
+        currentMusic = specialLoadingMusic
+        format = nullFormat
     }
 }
 
@@ -47,6 +69,8 @@ object MusicPlayer: Thread("Music Player") {
             val music = TinyJukebox.pollQueue()
             try {
                 if(music != null) {
+                    state.setLoadingState()
+                    updateClients(force = true)
                     val unbufferedStream = music.source.createStream()
                     val sourceStream = BufferedInputStream(unbufferedStream)
                     val input = AudioSystem.getAudioInputStream(sourceStream)
@@ -125,8 +149,8 @@ object MusicPlayer: Thread("Music Player") {
     /**
      * Send an update to clients about the current state of the player if the last call to this function was more than 250ms ago
      */
-    private fun updateClients() {
-        if(System.currentTimeMillis()-lastUpdate > 250) { // every 1/4th of a second
+    private fun updateClients(force: Boolean = false) {
+        if(force || System.currentTimeMillis()-lastUpdate > 250) { // every 1/4th of a second
             TinyJukebox.sendPlayerUpdateIfNecessary()
             lastUpdate = System.currentTimeMillis()
         }

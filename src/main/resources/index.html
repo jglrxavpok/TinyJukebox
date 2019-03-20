@@ -6,6 +6,9 @@
         </title>
         <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+        <!-- Font Awesome css -->
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
     </head>
     <body>
 
@@ -43,51 +46,69 @@
             <!-- The queue will be filled by JS code here !-->
         </div>
         <hr/>
-        <input type="file" name="musicFile" id="musicFile" />
-        <button id="uploadLocal" class="btn btn-primary btn-lg">
-            Upload from local file
-        </button>
+
+        <div class="m-2 border rounded">
+            <nav class="nav flex-column flex-sm-row mb-3 align-middle nav-tabs">
+                <a class="flex-sm-fill text-sm-center nav-link active" id="pills-home-tab" data-toggle="pill" href="#pills-upload-local" role="tab" aria-controls="pills-home" aria-selected="true">
+                    <i class="fas fa-upload"></i> Upload local file
+                </a>
+                <a class="flex-sm-fill text-sm-center nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-upload-youtube" role="tab" aria-controls="pills-profile" aria-selected="false">
+                    <img src="/images/yt_icon_mono.png" style="width: 45px; height:32px" alt="YouTube icon"/> Upload from Youtube
+                </a>
+            </nav>
+            <div class="tab-content text-center m-2" id="pills-tabContent">
+                <div class="tab-pane fade show active" id="pills-upload-local" role="tabpanel" aria-labelledby="pills-upload-local-tab">
+                    <input type="file" name="musicFile" id="musicFile" />
+                    <button id="uploadLocal" class="btn btn-primary btn-lg">
+                        Upload local file
+                    </button>
+                </div>
+                <div class="tab-pane fade" id="pills-upload-youtube" role="tabpanel" aria-labelledby="pills-upload-youtube-tab">
+                    <input type="text" name="youtubeLink" id="youtubeLink" placeholder="https://youtube.com/watch?v=<id>"/>
+                    <button id="uploadYoutube" class="btn btn-primary btn-lg">
+                        Upload from YouTube
+                    </button>
+
+                    <hr/>
+                    <button class="btn btn-primary" data-toggle="modal" data-target="#ytModal">Search on YouTube</button>
+                </div>
+            </div>
+        </div>
         <hr/>
-        <input type="text" name="youtubeLink" id="youtubeLink" placeholder="https://youtube.com/watch?v=<id>"/>
-        <button id="uploadYoutube" class="btn btn-primary btn-lg">
-            Upload from YouTube
-        </button>
         <div id="transferProgress"></div>
         <br/>
         <button class="btn btn-danger" id="empty">
             Clear queue
         </button>
 
-    <div id="yt-search-modal-container">
-        <div class="modal fade" id="ytModal" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Youtube Search</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="ytSearchInput" />
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" id="ytSearchButton">Search</button>
+        <div id="yt-search-modal-container">
+            <div class="modal fade" id="ytModal" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Youtube Search</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="ytSearchInput" />
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" id="ytSearchButton">Search</button>
+                                </div>
+                            </div>
+                            <div id="yt-search-results" class="d-flex justify-content-center flex-wrap col-md-14">
+
                             </div>
                         </div>
-                        <div id="yt-search-results" class="d-flex justify-content-center flex-wrap col-md-14">
-
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
         </div>
-
-        <button class="btn btn-primary" data-toggle="modal" data-target="#ytModal">Search on YouTube</button>
-    </div>
 
 
         <div id="auth-modal-container">

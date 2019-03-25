@@ -21,13 +21,18 @@ define(['jquery'], function($) {
         sendRequest(username, password) {
             var xhttp = new XMLHttpRequest();
             xhttp.open("POST", "/action/auth", true);
-
-            xhttp.onload = function() {
-                var text = xhttp.responseText;
-                authModal.modal('hide');
-                if (text.indexOf('no') !== -1) {
-                    alertContainer.html(alertContainer.html() +
-                        `
+            const encoder = new TextEncoder("UTF-8");
+            const data = encoder.encode(password);
+            window.crypto.subtle.digest('SHA-256', data).then(digestValue => {
+                const passwordHash = [...new Uint8Array(digestValue)].map(value => {
+                    return value.toString(16).padStart(2, '0')
+                }).join('');
+                xhttp.onload = function() {
+                    var text = xhttp.responseText;
+                    authModal.modal('hide');
+                    if (text.indexOf('no') !== -1) {
+                        alertContainer.html(alertContainer.html() +
+                            `
                     <div class="alert alert-warning alert-dismissible fade show" role="alert">
                         <strong>Error!</strong> Invalid credentials
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -35,12 +40,13 @@ define(['jquery'], function($) {
                         </button>
                     </div>
                     `
-                    );
-                } else {
-                    auth.currentCallback(username, password);
-                }
-            };
-            xhttp.send(username+"\n"+password+"\n");
+                        );
+                    } else {
+                        auth.currentCallback(username, passwordHash);
+                    }
+                };
+                xhttp.send(username+"\n"+passwordHash+"\n");
+            });
         }
     };
 

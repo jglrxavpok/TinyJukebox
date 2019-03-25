@@ -199,6 +199,52 @@ object TinyJukebox {
     }
 
     /**
+     * Move a given track up the queue
+     */
+    fun moveToStart(nameToRemove: String, index: Int): Boolean {
+        val result = performChangesToQueue {
+            if(index in 1 until size) {
+                val foundName = this[index].name
+                if(foundName == nameToRemove) {
+                    val music = this.removeAt(index)
+                    this.add(0, music)
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        }
+        if(result)
+            sendQueueUpdate()
+        return result
+    }
+
+    /**
+     * Move a given track up the queue
+     */
+    fun moveToEnd(nameToRemove: String, index: Int): Boolean {
+        val result = performChangesToQueue {
+            if(index in 1 until size) {
+                val foundName = this[index].name
+                if(foundName == nameToRemove) {
+                    val music = this.removeAt(index)
+                    this.add(music)
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        }
+        if(result)
+            sendQueueUpdate()
+        return result
+    }
+
+    /**
     * Move a given track up the queue
     */
     fun moveDown(nameToRemove: String, index: Int): Boolean {

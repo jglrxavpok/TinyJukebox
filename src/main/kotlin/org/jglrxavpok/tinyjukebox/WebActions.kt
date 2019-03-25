@@ -41,6 +41,8 @@ object WebActions {
         Action("playercontrol/empty", AuthChecker.checkAuth { writer, reader -> TinyJukebox.emptyQueue()}), // empty the current queue, requires authentification
         Action("playercontrol/skip", AuthChecker.checkAuth { writer, reader -> MusicPlayer.skip()}), // skips the current track, requires authentification
         Action("playercontrol/remove", AuthChecker.checkAuth(this::removeFromQueue)), // remove the selected track, requires authentification
+        Action("playercontrol/movetostart", AuthChecker.checkAuth(this::moveToStart)), // move the selected track at the head of the queue
+        Action("playercontrol/movetoend", AuthChecker.checkAuth(this::moveToEnd)), // move the selected track at the bottom the queue
         Action("playercontrol/moveup", AuthChecker.checkAuth(this::moveUp)), // move the selected track up the queue
         Action("playercontrol/movedown", AuthChecker.checkAuth(this::moveDown)) // move the selected track up the queue
     )
@@ -53,6 +55,28 @@ object WebActions {
         println("remove: $nameToRemove")
         val index = clientReader.readLine().toInt()
         if(!TinyJukebox.removeFromQueue(nameToRemove, index)) {
+            writer.println("invalid position")
+        }
+    }
+
+    /**
+     * Moves a track named as given by the client in 'clientReader'
+     */
+    private fun moveToStart(writer: PrintWriter, clientReader: BufferedReader) {
+        val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
+        val index = clientReader.readLine().toInt()
+        if(!TinyJukebox.moveToStart(nameToRemove, index)) {
+            writer.println("invalid position")
+        }
+    }
+
+    /**
+     * Moves a track named as given by the client in 'clientReader'
+     */
+    private fun moveToEnd(writer: PrintWriter, clientReader: BufferedReader) {
+        val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
+        val index = clientReader.readLine().toInt()
+        if(!TinyJukebox.moveToEnd(nameToRemove, index)) {
             writer.println("invalid position")
         }
     }

@@ -32,6 +32,12 @@ function($, bootstrap, playerControl, auth, quote, numeral) {
                     var moveDownHTML = `<i class="fas fa-chevron-down moveDown fa-3x clickable" data-index="${i-1}" data-name="${escapedTitle}"></i>`;
                     if(i === lines.length-1)
                         moveDownHTML = "";
+                    var moveStartHTML = `<i class="fas fa-angle-double-up moveToStart fa-3x clickable" data-index="${i-1}" data-name="${escapedTitle}"></i>`;
+                    if(i === 1)
+                        moveStartHTML = "";
+                    var moveEndHTML = `<i class="fas fa-angle-double-down moveToEnd fa-3x clickable" data-index="${i-1}" data-name="${escapedTitle}"></i>`;
+                    if(i === lines.length-1)
+                        moveEndHTML = "";
 
                     queueHTML += `
                     <tr>
@@ -39,9 +45,11 @@ function($, bootstrap, playerControl, auth, quote, numeral) {
                         <td>${musicObj.title}</td>
                         <td>${duration}</td>
                         <td class="text-nowrap text-center">
+                            ${moveStartHTML}
                             ${moveUpHTML}
                             <i class="fas fa-times queueRemoval fa-3x clickable" data-index="${i-1}" data-name="${escapedTitle}"></i>
                             ${moveDownHTML}
+                            ${moveEndHTML}
                         </td>
                     </tr>
                     `;
@@ -91,6 +99,24 @@ function($, bootstrap, playerControl, auth, quote, numeral) {
                         var name = link.data("name");
                         var index = link.data("index");
                         auth.requestAuth(playerControl.sendMoveDownRequestSupplier(name, index));
+                    });
+                });
+
+                $(".moveToStart").each(function() {
+                    var link = $(this);
+                    link.on('click', function(e) {
+                        var name = link.data("name");
+                        var index = link.data("index");
+                        auth.requestAuth(playerControl.sendMoveToStartRequestSupplier(name, index));
+                    });
+                });
+
+                $(".moveToEnd").each(function() {
+                    var link = $(this);
+                    link.on('click', function(e) {
+                        var name = link.data("name");
+                        var index = link.data("index");
+                        auth.requestAuth(playerControl.sendMoveToEndRequestSupplier(name, index));
                     });
                 });
                 break;

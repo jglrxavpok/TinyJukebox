@@ -91,6 +91,14 @@ define(['jquery', 'auth'], function($, auth) {
         sendMoveDownRequestSupplier: function(name, index) {
             return playerControl.sendMusicControlRequestSupplier(name, index, "movedown")
         },
+
+        sendMoveToStartRequestSupplier: function(name, index) {
+            return playerControl.sendMusicControlRequestSupplier(name, index, "movetostart")
+        },
+
+        sendMoveToEndRequestSupplier: function(name, index) {
+            return playerControl.sendMusicControlRequestSupplier(name, index, "movetoend")
+        },
     };
     $('#skipButton').on('click', function() {
         auth.requestAuth(playerControl.sendSkipRequest);

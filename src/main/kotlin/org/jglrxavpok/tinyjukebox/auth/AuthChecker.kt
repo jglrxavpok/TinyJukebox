@@ -14,29 +14,32 @@ object AuthChecker {
     /**
      * Generates a function to be used in WebActions
      */
-    fun checkAuth(callback: ((PrintWriter, BufferedReader) -> Unit)?): (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>) -> Unit {
-        return { writer, length, reader, input, attributes ->
+    fun checkAuth(callback: ((PrintWriter, BufferedReader, String, String) -> Unit)?): (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>, Map<String, String>) -> Unit {
+        return { writer, length, reader, input, attributes, cookies ->
             val username = reader.readLine()
             val passwordHash = reader.readLine()
 
-            val adminAccountFile = File(getOrMkdirAuthFolder(), username)
-            if(adminAccountFile.exists() && !adminAccountFile.isDirectory) {
-                // ensure the password is correct by using SHA-256 on the given password and checking that it is the same hash that the one stored inside the file
-                val validPassword = adminAccountFile.readText() == passwordHash
-                if(validPassword) {
-                    writer.println("yes")
-                    if(callback != null) {
-                        callback(writer, reader)
-                    }
-                } else {
-                    writer.println("no")
-                    println("Invalid credentials for $username")
+            if(checkAuth(username, passwordHash)) {
+                writer.println("yes")
+                if(callback != null) {
+                    callback(writer, reader, username, passwordHash)
                 }
             } else {
                 writer.println("no")
-                println("Invalid credentials for $username")
             }
         }
+    }
+
+    /**
+     * Checks that a given username exists and that the given password hash is the correct one
+     */
+    fun checkAuth(username: String, passwordHash: String): Boolean {
+        val adminAccountFile = File(getOrMkdirAuthFolder(), username)
+        if (adminAccountFile.exists() && !adminAccountFile.isDirectory) {
+            // ensure the password is correct by using SHA-256 on the given password and checking that it is the same hash that the one stored inside the file
+            return adminAccountFile.readText() == passwordHash
+        }
+        return false
     }
 
     /**

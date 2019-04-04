@@ -3,6 +3,8 @@ package org.jglrxavpok.tinyjukebox
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import org.jglrxavpok.tinyjukebox.auth.AuthChecker
+import org.jglrxavpok.tinyjukebox.auth.Session
+import org.jglrxavpok.tinyjukebox.auth.Session.Companion.login
 import org.jglrxavpok.tinyjukebox.player.FileSource
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.player.YoutubeSource
@@ -13,6 +15,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.*
 import java.util.regex.Pattern
+import kotlin.collections.HashMap
 
 /**
  * Object responsible to act when "/action/<some location>" is requested via a POST request
@@ -29,7 +32,7 @@ object WebActions {
     /**
      * An action
      */
-    open class Action(val id: String, val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>) -> Unit)
+    open class Action(val id: String, val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>, Map<String, String>/*cookies*/) -> Unit)
 
     /**
      * List of all actions supported by TinyJukebox
@@ -38,19 +41,22 @@ object WebActions {
         Action("upload", this::upload), // upload a local or a youtube link
         Action("ytsearch", this::ytsearch), // search a video on YT
         Action("auth", AuthChecker.checkAuth(null)), // check authenfication
-        Action("playercontrol/empty", AuthChecker.checkAuth { writer, reader -> TinyJukebox.emptyQueue()}), // empty the current queue, requires authentification
-        Action("playercontrol/skip", AuthChecker.checkAuth { writer, reader -> MusicPlayer.skip()}), // skips the current track, requires authentification
+        Action("playercontrol/empty", AuthChecker.checkAuth { writer, reader, username, passwordHash -> TinyJukebox.emptyQueue()}), // empty the current queue, requires authentification
+        Action("playercontrol/skip", AuthChecker.checkAuth { writer, reader, username, passwordHash -> MusicPlayer.skip()}), // skips the current track, requires authentification
         Action("playercontrol/remove", AuthChecker.checkAuth(this::removeFromQueue)), // remove the selected track, requires authentification
         Action("playercontrol/movetostart", AuthChecker.checkAuth(this::moveToStart)), // move the selected track at the head of the queue
         Action("playercontrol/movetoend", AuthChecker.checkAuth(this::moveToEnd)), // move the selected track at the bottom the queue
         Action("playercontrol/moveup", AuthChecker.checkAuth(this::moveUp)), // move the selected track up the queue
-        Action("playercontrol/movedown", AuthChecker.checkAuth(this::moveDown)) // move the selected track up the queue
+        Action("playercontrol/movedown", AuthChecker.checkAuth(this::moveDown)), // move the selected track up the queue
+
+        Action("login", AuthChecker.checkAuth(Session.Companion::login)), // move the selected track up the queue
+        Action("logout", AuthChecker.checkAuth(Session.Companion::logout)) // move the selected track up the queue
     )
 
     /**
      * Remove tracks named as given by the client in 'clientReader'
      */
-    private fun removeFromQueue(writer: PrintWriter, clientReader: BufferedReader) {
+    private fun removeFromQueue(writer: PrintWriter, clientReader: BufferedReader, username: String, passwordHash: String) {
         val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
         println("remove: $nameToRemove")
         val index = clientReader.readLine().toInt()
@@ -62,7 +68,7 @@ object WebActions {
     /**
      * Moves a track named as given by the client in 'clientReader'
      */
-    private fun moveToStart(writer: PrintWriter, clientReader: BufferedReader) {
+    private fun moveToStart(writer: PrintWriter, clientReader: BufferedReader, username: String, passwordHash: String) {
         val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
         val index = clientReader.readLine().toInt()
         if(!TinyJukebox.moveToStart(nameToRemove, index)) {
@@ -73,7 +79,7 @@ object WebActions {
     /**
      * Moves a track named as given by the client in 'clientReader'
      */
-    private fun moveToEnd(writer: PrintWriter, clientReader: BufferedReader) {
+    private fun moveToEnd(writer: PrintWriter, clientReader: BufferedReader, username: String, passwordHash: String) {
         val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
         val index = clientReader.readLine().toInt()
         if(!TinyJukebox.moveToEnd(nameToRemove, index)) {
@@ -84,7 +90,7 @@ object WebActions {
     /**
      * Moves a track named as given by the client in 'clientReader'
      */
-    private fun moveUp(writer: PrintWriter, clientReader: BufferedReader) {
+    private fun moveUp(writer: PrintWriter, clientReader: BufferedReader, username: String, passwordHash: String) {
         val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
         val index = clientReader.readLine().toInt()
         if(!TinyJukebox.moveUp(nameToRemove, index)) {
@@ -95,7 +101,7 @@ object WebActions {
     /**
      * Moves a track named as given by the client in 'clientReader'
      */
-    private fun moveDown(writer: PrintWriter, clientReader: BufferedReader) {
+    private fun moveDown(writer: PrintWriter, clientReader: BufferedReader, username: String, passwordHash: String) {
         val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
         val index = clientReader.readLine().toInt()
         if(!TinyJukebox.moveDown(nameToRemove, index)) {
@@ -106,7 +112,7 @@ object WebActions {
     /**
      * Searches Youtube for the query given by the client in 'clientReader'/'clientInput'
      */
-    private fun ytsearch(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
+    private fun ytsearch(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>) {
         val query = clientReader.readLine()
         val queryURL = URL("https://www.youtube.com/results?search_query=${query.replace(" ", "+")}")
         val text = queryURL.readText(StandardCharsets.UTF_8)
@@ -144,7 +150,7 @@ object WebActions {
         return array
     }
 
-    private fun upload(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
+    private fun upload(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>) {
         val fileSource = attributes["File-Source"]
         val music: Music? = when(fileSource) {
             "Local" -> uploadLocal(clientReader, attributes)
@@ -200,15 +206,26 @@ object WebActions {
     private fun uploadYoutube(clientReader: BufferedReader, attributes: Map<String, String>): Music? {
         // simply create the source from the given url
         val url = clientReader.readLine()
+        if(url.isBlank()) {
+            return null
+        }
         return Music(YoutubeSource(url))
     }
 
     /**
      * Perform an action from 'actionList' based on 'actionType' and the data the client is sending
      */
-    fun perform(writer: PrintWriter, actionType: String, length: Long, reader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>) {
+    fun perform(
+        writer: PrintWriter,
+        actionType: String,
+        length: Long,
+        reader: BufferedReader,
+        clientInput: InputStream,
+        attributes: Map<String, String>,
+        cookies: Map<String, String>
+    ) {
         try {
-            actionList.first { it.id.toLowerCase() == actionType.toLowerCase()}.action(writer, length, reader, clientInput, attributes)
+            actionList.first { it.id.toLowerCase() == actionType.toLowerCase()}.action(writer, length, reader, clientInput, attributes, cookies)
         } catch (e: Exception) {
             TinyJukebox.sendError(IllegalArgumentException("Failed to perform action: $e"))
             e.printStackTrace()

@@ -47,6 +47,57 @@ define(['jquery'], function($) {
                 };
                 xhttp.send(username+"\n"+passwordHash+"\n");
             });
+        },
+
+        login(username, hash) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("POST", "/action/login", true);
+            xhttp.onload = function () {
+                var text = xhttp.responseText;
+                if(text.indexOf('no') !== -1) {
+                    alertContainer.html(alertContainer.html() +
+                        `
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <strong>Error!</strong> Invalid credentials
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        `
+                    );
+                } else {
+                    var lines = text.split("\n"); // first line is 'yes' to confirm auth
+                    document.cookie = "SessionId="+lines[1]+";"; // TODO: expiration
+                    location.reload(true);
+                }
+            };
+            xhttp.setRequestHeader("Content-Type", "application/octet-stream");
+            xhttp.send(username + "\n" + hash+"\n");
+        },
+
+        logout(username, hash) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("POST", "/action/logout", true);
+            xhttp.onload = function () {
+                var text = xhttp.responseText;
+                if(text.indexOf('no') !== -1) {
+                    alertContainer.html(alertContainer.html() +
+                        `
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <strong>Error!</strong> Invalid credentials
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        `
+                    );
+                } else {
+                    document.cookie = "SessionId=00000000-0000-0000-0000-000000000000; expires=Thu, 01 Jan 1970 00:00:01 GMT;"; // delete cookie
+                    location.reload(true);
+                }
+            };
+            xhttp.setRequestHeader("Content-Type", "application/octet-stream");
+            xhttp.send(username + "\n" + hash+"\n");
         }
     };
 
@@ -62,6 +113,15 @@ define(['jquery'], function($) {
         if (e.which === 13) {
             auth.sendRequest(usernameInput.val(), passwordInput.val());
         }
+    });
+
+
+    $("#loginButton").on('click', function(e) {
+        auth.requestAuth(auth.login);
+    });
+
+    $("#logout").on('click', function(e) {
+        auth.requestAuth(auth.logout);
     });
     return auth;
 });

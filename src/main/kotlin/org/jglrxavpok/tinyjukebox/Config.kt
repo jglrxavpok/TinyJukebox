@@ -65,6 +65,7 @@ object Timings: KeyGroup() {
     val quoteDelay = LongKey(15000L)
     val quoteFadeIn = LongKey(750L)
     val quoteFadeOut = LongKey(750L)
+    val sessionExpiration = LongKey(30*60*1000L) // 30s by default
 }
 
 object Network: KeyGroup() {

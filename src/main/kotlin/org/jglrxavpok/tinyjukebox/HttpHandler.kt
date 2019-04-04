@@ -1,6 +1,7 @@
 package org.jglrxavpok.tinyjukebox
 
 import html.htmlErrorCodeToName
+import org.jglrxavpok.tinyjukebox.auth.Session
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -8,21 +9,29 @@ import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.net.Socket
 import java.nio.file.Paths
-import kotlin.random.Random
 
 /**
  * Thread to handle HTTP requests from a client
  */
 class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
 
+    companion object {
+        /**
+         * Name of the cookie holding the user's session id (when it exists)
+         */
+        const val SessionIdCookie = "SessionId"
+    }
+
     /**
      * Path representing the root of the music folder
      */
     val rootPath = Paths.get("/")
-
     // Helper objects for communication
     val writer = PrintWriter(OutputStreamWriter(client.getOutputStream()))
     val reader = BufferedReader(InputStreamReader(client.getInputStream()))
+    private val cookies = HashMap<String, String>()
+
+    private var session = Session.Anonymous
 
     override fun run() {
         val request = reader.readLine()
@@ -52,6 +61,11 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
             val parts = line.split(": ")
             if(parts.size > 1) {
                 attributes[parts[0]] = parts[1]
+
+                if(parts[0] == "Cookie") {
+                    val cookieInfo = parts[1].split("=")
+                    cookies[cookieInfo[0]] = cookieInfo[1]
+                }
             }
             if(line.startsWith("File-Size: ")) {
                 length = line.substring("File-Size: ".length).toLong()
@@ -64,7 +78,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
             val actionType = location.substring("/action/".length)
             if(WebActions.isValidAction(actionType)) {
                 htmlError(200)
-                WebActions.perform(writer, actionType, length, reader, client.getInputStream(), attributes)
+                WebActions.perform(writer, actionType, length, reader, client.getInputStream(), attributes, cookies)
             } else {
                 htmlError(404)
             }
@@ -85,6 +99,26 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                 writer.println(QuoteThread.currentQuote)
                 return
             }
+        }
+
+        do {
+            val line = reader.readLine()
+            if(line.startsWith("Cookie: ")) {
+                val givenCookies = line.substring("Cookie: ".length).split("; ")
+                for(cookie in givenCookies) {
+                    val cookieInfo = cookie.split("=")
+                    val name = cookieInfo[0]
+                    val value = cookieInfo[1]
+                    cookies[name] = value
+
+                    println(">>> $name = $value")
+                }
+            }
+        } while( ! line.isBlank())
+
+        // load session infos
+        if(SessionIdCookie in cookies) {
+            session = Session.load(cookies[SessionIdCookie]!!)
         }
 
         // simply serving pages
@@ -129,14 +163,40 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
     }
 
     private fun applyVariables(text: String): String {
-        return text.replace(Regex("___(?<VAR>.*?)___")) { result ->
+        return text.replace(Regex("___Template (?<VAR>.*?),(?<COND>.*?) Template___")) { result ->
+            val varName = result.groups["VAR"]
+            val condition = result.groups["COND"]
+            if(varName != null && condition != null) {
+                val value = evaluateCondition(condition.value)
+                javaClass.getResourceAsStream("/${varName.value}_$value.html")?.bufferedReader()?.readText() ?: "NotFound(${varName.value})"
+            } else {
+                result.toString()
+            }
+        }.replace(Regex("___(?<VAR>.*?)___")) { result ->
             val varName = result.groups["VAR"]
             if(varName != null) {
-                Config.getFromProperties(varName.value)
+                evaluateVariable(varName.value) ?: Config.getFromProperties(varName.value)
             } else {
                 result.toString()
             }
         }
+    }
+
+    private fun evaluateVariable(name: String): String? = when(name) {
+        "username" -> session.username
+        else -> null
+    }
+
+    private fun evaluateCondition(condition: String): String = when(condition) {
+        "logged in" -> {
+            if(SessionIdCookie in cookies) {
+                "logged_in"
+            } else {
+                "not_logged_in"
+            }
+        }
+
+        else -> condition // echo the condition
     }
 
     /**

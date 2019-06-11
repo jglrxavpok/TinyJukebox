@@ -2,6 +2,7 @@ package org.jglrxavpok.tinyjukebox
 
 import html.htmlErrorCodeToName
 import org.jglrxavpok.tinyjukebox.auth.Session
+import org.jglrxavpok.tinyjukebox.exceptions.InvalidSessionException
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -118,7 +119,11 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
 
         // load session infos
         if(SessionIdCookie in cookies) {
-            session = Session.load(cookies[SessionIdCookie]!!)
+            try {
+                session = Session.load(cookies[SessionIdCookie]!!)
+            } catch (e: InvalidSessionException) {
+                session = Session.Anonymous
+            }
         }
 
         // simply serving pages
@@ -189,7 +194,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
 
     private fun evaluateCondition(condition: String): String = when(condition) {
         "logged in" -> {
-            if(SessionIdCookie in cookies) {
+            if(SessionIdCookie in cookies && Session.exists(cookies[SessionIdCookie]!!)) {
                 "logged_in"
             } else {
                 "not_logged_in"

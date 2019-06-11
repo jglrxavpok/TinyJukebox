@@ -13,7 +13,7 @@ import java.net.ServerSocket
 /**
  * TinyJukebox entry point
  */
-fun main(args: Array<String>) {
+fun main() {
     val fileOut = FileOutputStream("tinyjukebox.log")
     val fileErr = FileOutputStream("errors.log")
     val stdout = System.out
@@ -52,6 +52,14 @@ fun main(args: Array<String>) {
     TinyJukebox.setWebsocket(websocket)
     websocket.start()
     QuoteThread.start() // thread to synchronize quote between clients
+
+    val shutdownThread = object: Thread() {
+        override fun run() {
+            websocket.stop()
+            httpSocket.close()
+        }
+    }
+    Runtime.getRuntime().addShutdownHook(shutdownThread)
     while(true) {
         val client = httpSocket.accept()
         HttpHandler(client).start()

@@ -131,6 +131,23 @@ public class SSLServerSocketKeystoreFactory {
      */
     public static SSLServerSocket getServerSocketWithCert(int port, InputStream pathToCert, String passwordFromCert, ServerSecureType type) throws IOException,
             KeyManagementException, NoSuchAlgorithmException, CertificateException, KeyStoreException, UnrecoverableKeyException{
+        SSLContext ctx = getSSLContextWithCert(pathToCert, passwordFromCert, type);
+        SSLServerSocketFactory socketFactory = ctx.getServerSocketFactory();
+        SSLServerSocket ssocket = (SSLServerSocket) socketFactory.createServerSocket(port);
+        return ssocket;
+    }
+
+    public static SSLContext getSSLContextWithCert(String pathToCert, String passwordFromCert, ServerSecureType type) throws IOException,
+            KeyManagementException, NoSuchAlgorithmException, CertificateException, KeyStoreException, UnrecoverableKeyException{
+        File f = new File(pathToCert);
+        if(!f.exists()){
+            throw new FileNotFoundException("The specified path point to a non existing file ! ("+pathToCert+")");
+        }
+        return getSSLContextWithCert(new FileInputStream(f), passwordFromCert, type);
+    }
+
+    public static SSLContext getSSLContextWithCert(InputStream pathToCert, String passwordFromCert, ServerSecureType type) throws IOException,
+            KeyManagementException, NoSuchAlgorithmException, CertificateException, KeyStoreException, UnrecoverableKeyException{
         X509TrustManager[] tmm;
         X509KeyManager[] kmm;
         KeyStore ks  = KeyStore.getInstance(instance);
@@ -139,10 +156,9 @@ public class SSLServerSocketKeystoreFactory {
         kmm=km(ks, passwordFromCert);
         SSLContext ctx = SSLContext.getInstance(type.getType());
         ctx.init(kmm, tmm, null);
-        SSLServerSocketFactory socketFactory = (SSLServerSocketFactory) ctx.getServerSocketFactory();
-        SSLServerSocket ssocket = (SSLServerSocket) socketFactory.createServerSocket(port);
-        return ssocket;
+        return ctx;
     }
+
     /**
      * Util class to get the X509TrustManager
      *

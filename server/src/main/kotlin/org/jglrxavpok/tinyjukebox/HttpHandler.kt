@@ -147,7 +147,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
      * Sends a given page or sends a 404 error
      */
     private fun serve(pageName: String) {
-        val resourceStream = javaClass.getResourceAsStream(pageName) ?: return htmlError(404)
+        val resourceStream = javaClass.getResourceAsStream(pageName) ?: return htmlError(404, pageName)
         htmlError(200, type=getMimeFromExtension(pageName))
         if(pageName.endsWith(".png")) {
             client.getOutputStream().write(resourceStream.readBytes())
@@ -160,8 +160,10 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
 
     private fun getMimeFromExtension(pageName: String): String {
         val extension = pageName.substringAfterLast(".")
+        println("MIME FOR $extension")
         return when(extension) {
             "css" -> "text/css"
+            "js" -> "text/javascript"
 
             else -> "text/html"
         }

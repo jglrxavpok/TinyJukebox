@@ -5,7 +5,6 @@ var pathsObject = {
 };
 requirejs.config({
     //By default load any module IDs from scripts/
-    baseUrl: 'scripts/',
     //except, for jQuery
     paths: pathsObject
 });
@@ -16,8 +15,14 @@ function   ($, bootstrap, quote, config, about, messageHandler, playerControl) {
 
     quote.init(); // force the quote to appear right at the start
     var queueContainer = $("#queueContainer");
-    var socket = new WebSocket(`ws://${window.location.hostname}:${config.websocketPort}`);
-    console.log("Socket addr is "+`ws://${window.location.hostname}:${config.websocketPort}`);
+    var socketProtocol;
+    if(config.useSSL) {
+        socketProtocol = "wss";
+    } else {
+        socketProtocol = "ws";
+    }
+    var socket = new WebSocket(`${socketProtocol}://${window.location.hostname}:${config.websocketPort}`);
+    console.log("Socket addr is "+`${socketProtocol}://${window.location.hostname}:${config.websocketPort}`);
 
     socket.onopen = function (ev) {
         queueContainer.text("Connected!");

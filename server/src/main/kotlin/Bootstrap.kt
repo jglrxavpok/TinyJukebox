@@ -1,4 +1,5 @@
 import fr.gpotter2.SSLServerSocketKeystoreFactory
+import org.java_websocket.server.DefaultSSLWebSocketServerFactory
 import org.jglrxavpok.tinyjukebox.*
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.websocket.JukeboxWebsocketServer
@@ -8,6 +9,8 @@ import java.io.OutputStream
 import java.io.PrintStream
 import java.net.InetSocketAddress
 import java.net.ServerSocket
+import javax.net.ssl.SSLServerSocket
+import javax.net.ssl.SSLServerSocketFactory
 
 /**
  * TinyJukebox entry point
@@ -45,16 +48,21 @@ fun main() {
     MusicPlayer.start() // start Music playing thread
 
     // start http(s) and websocket servers
+    val websocket = JukeboxWebsocketServer(InetSocketAddress(Config[Network.websocketPort]))
     val httpSocket: ServerSocket
     httpSocket = if(Config[Security.useSSL]) {
         val path = Config[Security.sslCertificate]
         val password = Config[Security.sslCertificatePassword]
-        SSLServerSocketKeystoreFactory.getServerSocketWithCert(Config[Network.httpsPort], path, password, SSLServerSocketKeystoreFactory.ServerSecureType.TLSv1_2)
+        val port = Config[Network.httpsPort]
+        val sslContext = SSLServerSocketKeystoreFactory.getSSLContextWithCert(path, password, SSLServerSocketKeystoreFactory.ServerSecureType.TLSv1_2)
+        val socketFactory = sslContext.serverSocketFactory as SSLServerSocketFactory
+        websocket.setWebSocketFactory(DefaultSSLWebSocketServerFactory( sslContext ))
+        socketFactory.createServerSocket(port) as SSLServerSocket
     } else {
         System.err.println("You are not using a secure connection! Consider creating your own certificate and setting 'Security.useSSL' to true in the configuration file")
         ServerSocket(Config[Network.httpsPort])
     }
-    val websocket = JukeboxWebsocketServer(InetSocketAddress(Config[Network.websocketPort]))
+
     TinyJukebox.setWebsocket(websocket)
     websocket.start()
     QuoteThread.start() // thread to synchronize quote between clients

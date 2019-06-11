@@ -4,6 +4,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.util.*
 
+// TODO: Comments for keys
 /**
  * Object responsible of the jukebox configuration
  *

@@ -13,7 +13,7 @@ build/
 #Runtime
 music/
 quotes_intech.txt
-auth/
+auth/*
 config.cfg
 errors.log
 tinyjukebox.cfg

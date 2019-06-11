@@ -14,7 +14,7 @@ object Config {
     private val settingsFile = File("./config.cfg")
     private val properties = Properties()
 
-    private val groups = listOf(Paths, Timings, Network, Text)
+    private val groups = listOf(Paths, Timings, Network, Text, Security)
 
     fun load() {
         val comments = "TinyJukebox configurations"
@@ -69,8 +69,14 @@ object Timings: KeyGroup() {
 }
 
 object Network: KeyGroup() {
-    val httpPort = IntKey(80)
+    val httpsPort = IntKey(8080)
     val websocketPort = IntKey(8887)
+}
+
+object Security: KeyGroup() {
+    val sslCertificate = StringKey("./sslCertificate.key")
+    val sslCertificatePassword = StringKey("PLEASE CHANGE THIS")
+    val useSSL = BooleanKey(true)
 }
 
 abstract class Key<T> {

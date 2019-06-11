@@ -17,3 +17,6 @@ auth/
 config.cfg
 errors.log
 tinyjukebox.cfg
+
+#Security
+sslCertificate.key

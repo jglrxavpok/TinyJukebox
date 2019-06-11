@@ -1,6 +1,5 @@
-import org.jglrxavpok.tinyjukebox.Config
-import org.jglrxavpok.tinyjukebox.HttpHandler
-import org.jglrxavpok.tinyjukebox.TinyJukebox
+import fr.gpotter2.SSLServerSocketKeystoreFactory
+import org.jglrxavpok.tinyjukebox.*
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.websocket.JukeboxWebsocketServer
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
@@ -45,10 +44,17 @@ fun main() {
     Config.load()
     MusicPlayer.start() // start Music playing thread
 
-    // start http and websocket servers
-    // TODO: configurable port
-    val httpSocket = ServerSocket(8080)
-    val websocket = JukeboxWebsocketServer(InetSocketAddress(8887))
+    // start http(s) and websocket servers
+    val httpSocket: ServerSocket
+    httpSocket = if(Config[Security.useSSL]) {
+        val path = Config[Security.sslCertificate]
+        val password = Config[Security.sslCertificatePassword]
+        SSLServerSocketKeystoreFactory.getServerSocketWithCert(Config[Network.httpsPort], path, password, SSLServerSocketKeystoreFactory.ServerSecureType.TLSv1_2)
+    } else {
+        System.err.println("You are not using a secure connection! Consider creating your own certificate and setting 'Security.useSSL' to true in the configuration file")
+        ServerSocket(Config[Network.httpsPort])
+    }
+    val websocket = JukeboxWebsocketServer(InetSocketAddress(Config[Network.websocketPort]))
     TinyJukebox.setWebsocket(websocket)
     websocket.start()
     QuoteThread.start() // thread to synchronize quote between clients

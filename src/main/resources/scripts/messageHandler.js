@@ -7,6 +7,10 @@ function($, bootstrap, playerControl, auth, quote, numeral) {
     return function(lines) {
         switch (lines[0]) {
             case "queue":
+                var controlsHeaderHTML = '<th scope="col" class="text-nowrap text-center">Controls</th>';
+                if(auth.sessionID === undefined) {
+                    controlsHeaderHTML = '';
+                }
                 var queueHTML = `                
                 <table class="table">
                   <thead>
@@ -14,7 +18,7 @@ function($, bootstrap, playerControl, auth, quote, numeral) {
                       <th scope="col">#</th>
                       <th scope="col" class="text-nowrap text-center">Name</th>
                       <th scope="col" class="text-nowrap text-center">Duration</th>
-                      <th scope="col" class="text-nowrap text-center">Controls</th>
+                      ${controlsHeaderHTML}
                     </tr>
                   </thead>
                   <tbody>`;
@@ -39,20 +43,33 @@ function($, bootstrap, playerControl, auth, quote, numeral) {
                     if(i === lines.length-1)
                         moveEndHTML = "";
 
-                    queueHTML += `
-                    <tr>
-                        <th scope="row">${i}</th>
-                        <td>${musicObj.title}</td>
-                        <td>${duration}</td>
-                        <td class="text-nowrap text-center">
+                    var controlsHTML = `<td class="text-nowrap text-center">
                             ${moveStartHTML}
                             ${moveUpHTML}
                             <i class="fas fa-times queueRemoval fa-3x clickable" data-index="${i-1}" data-name="${escapedTitle}"></i>
                             ${moveDownHTML}
                             ${moveEndHTML}
-                        </td>
+                        </td>`;
+                    if(auth.sessionID === undefined) {
+                        controlsHTML = '';
+                    }
+                    queueHTML += `
+                    <tr>
+                        <th scope="row">${i}</th>
+                        <td>${musicObj.title}</td>
+                        <td>${duration}</td>
+                        ${controlsHTML}
                     </tr>
                     `;
+                }
+                var clearQueueHTML =
+                    `<td class="text-nowrap text-center">
+                        <button class="btn btn-danger" id="empty">
+                            Clear queue
+                        </button>
+                    </td>`;
+                if(auth.sessionID === undefined) {
+                    clearQueueHTML = '';
                 }
                 var totalDurationStr = numeral(totalTime/1000).format('00:00:00');
                 queueHTML += `
@@ -60,11 +77,7 @@ function($, bootstrap, playerControl, auth, quote, numeral) {
                         <th scope="row">Total</th>
                         <td>${lines.length-1} tracks</td>
                         <td>${totalDurationStr}</td>
-                        <td class="text-nowrap text-center">
-                            <button class="btn btn-danger" id="empty">
-                                Clear queue
-                            </button>
-                        </td>
+                        ${clearQueueHTML}
                     </tr>
                     `;
 

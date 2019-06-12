@@ -3,6 +3,8 @@ package org.jglrxavpok.tinyjukebox
 import html.htmlErrorCodeToName
 import org.jglrxavpok.tinyjukebox.auth.Session
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidSessionException
+import org.jglrxavpok.tinyjukebox.templating.Auth
+import org.jglrxavpok.tinyjukebox.templating.FreeMarker
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -10,6 +12,7 @@ import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.net.Socket
 import java.nio.file.Paths
+import org.jglrxavpok.tinyjukebox.templating.Text as TemplatingText
 
 /**
  * Thread to handle HTTP requests from a client
@@ -135,8 +138,12 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
             return
         }
         serve(
-            if(location == "/") {
-                "/index.html"
+            if(location == "/" || location == "index.html") {
+                if(session == Session.Anonymous) {
+                    "/landing.html"
+                } else {
+                    "/index.html"
+                }
             } else {
                 location
             }
@@ -152,6 +159,14 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
         if(pageName.endsWith(".png")) {
             client.getOutputStream().write(resourceStream.readBytes())
             client.getOutputStream().flush()
+        } else if(pageName.endsWith(".html")) {
+            val dataModel = hashMapOf<String, Any>()
+            if(session != Session.Anonymous) {
+                dataModel["auth"] = Auth(session.username)
+            }
+            dataModel["text"] = TemplatingText(Config[Text.title])
+            FreeMarker.processTemplate(pageName, dataModel, writer)
+            //writer.println(applyVariables(text)) // TODO
         } else {
             val text = resourceStream.reader().readText()
             writer.println(applyVariables(text))

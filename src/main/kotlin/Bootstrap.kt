@@ -3,6 +3,7 @@ import org.java_websocket.server.DefaultSSLWebSocketServerFactory
 import org.jglrxavpok.tinyjukebox.*
 import org.jglrxavpok.tinyjukebox.auth.RSALoadKeyOrCreate
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
+import org.jglrxavpok.tinyjukebox.templating.FreeMarker
 import org.jglrxavpok.tinyjukebox.websocket.JukeboxWebsocketServer
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
 import java.io.FileOutputStream
@@ -12,6 +13,7 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import javax.net.ssl.SSLServerSocket
 import javax.net.ssl.SSLServerSocketFactory
+import kotlin.concurrent.thread
 
 /**
  * TinyJukebox entry point
@@ -46,6 +48,7 @@ fun main() {
     System.setOut(PrintStream(dualOut, true))
     System.setErr(PrintStream(dualErr, true))
     Config.load()
+    FreeMarker.init()
     println("Loading Database...")
     TJDatabase.init()
     println("Finished loading!")

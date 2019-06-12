@@ -1,8 +1,11 @@
-define(['jquery'], function($) {
+define(['jquery', 'jsencrypt'], function($, jsencrypt) {
     var authModal = $('#authModal');
     var alertContainer = $("#alertContainer");
     var auth = {
         currentCallback: undefined,
+        publicKey: undefined,
+        username: undefined,
+        sessionID: undefined,
 
         /**
          * Opens the auth modal and calls the given callback if the auth passed
@@ -24,9 +27,11 @@ define(['jquery'], function($) {
             const encoder = new TextEncoder("UTF-8");
             const data = encoder.encode(password);
             window.crypto.subtle.digest('SHA-256', data).then(digestValue => {
-                const passwordHash = [...new Uint8Array(digestValue)].map(value => {
-                    return value.toString(16).padStart(2, '0')
-                }).join('');
+                var encrypt = new jsencrypt.JSEncrypt();
+                encrypt.setPublicKey(auth.publicKey);
+
+                const encodedPassword = encrypt.encrypt(password);
+
                 xhttp.onload = function() {
                     var text = xhttp.responseText;
                     authModal.modal('hide');
@@ -42,14 +47,14 @@ define(['jquery'], function($) {
                     `
                         );
                     } else {
-                        auth.currentCallback(username, passwordHash);
+                        auth.currentCallback(username, encodedPassword);
                     }
                 };
-                xhttp.send(username+"\n"+passwordHash+"\n");
+                xhttp.send(username+"\n"+encodedPassword+"\n");
             });
         },
 
-        login(username, hash) {
+        login(username, encodedPassword) {
             var xhttp = new XMLHttpRequest();
             xhttp.open("POST", "/action/login", true);
             xhttp.onload = function () {
@@ -68,14 +73,16 @@ define(['jquery'], function($) {
                 } else {
                     var lines = text.split("\n"); // first line is 'yes' to confirm auth
                     document.cookie = "SessionId="+lines[1]+";"; // TODO: expiration
+                    auth.username = username;
+                    auth.sessionID = lines[1];
                     location.reload(true);
                 }
             };
             xhttp.setRequestHeader("Content-Type", "application/octet-stream");
-            xhttp.send(username + "\n" + hash+"\n");
+            xhttp.send(username + "\n" + encodedPassword+"\n");
         },
 
-        logout(username, hash) {
+        logout(username) {
             var xhttp = new XMLHttpRequest();
             xhttp.open("POST", "/action/logout", true);
             xhttp.onload = function () {
@@ -97,7 +104,7 @@ define(['jquery'], function($) {
                 }
             };
             xhttp.setRequestHeader("Content-Type", "application/octet-stream");
-            xhttp.send(username + "\n" + hash+"\n");
+            xhttp.send(username + "\n");
         }
     };
 
@@ -120,8 +127,8 @@ define(['jquery'], function($) {
         auth.requestAuth(auth.login);
     });
 
-    $("#logout").on('click', function(e) {
-        auth.requestAuth(auth.logout);
+    $("#logoutButton").on('click', function(e) {
+        auth.logout(auth.username);
     });
     return auth;
 });

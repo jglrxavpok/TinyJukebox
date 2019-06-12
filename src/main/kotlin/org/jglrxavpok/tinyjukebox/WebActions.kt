@@ -50,7 +50,7 @@ object WebActions {
         Action("playercontrol/movedown", AuthChecker.checkAuth(this::moveDown)), // move the selected track up the queue
 
         Action("login", AuthChecker.checkAuth(Session.Companion::login)), // move the selected track up the queue
-        Action("logout", AuthChecker.checkAuth(Session.Companion::logout)) // move the selected track up the queue
+        Action("logout", Session.Companion::logout) // move the selected track up the queue
     )
 
     /**

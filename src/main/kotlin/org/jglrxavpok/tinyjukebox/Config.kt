@@ -15,7 +15,7 @@ object Config {
     private val settingsFile = File("./config.cfg")
     private val properties = Properties()
 
-    private val groups = listOf(Paths, Timings, Network, Text, Security)
+    private val groups = listOf(Paths, Timings, Network, Text, Security, DatabaseConfig)
 
     fun load() {
         val comments = "TinyJukebox configurations"
@@ -62,6 +62,11 @@ object Paths: KeyGroup() {
     val quotes = StringKey("./src/main/resources/quotes.txt")
 }
 
+object DatabaseConfig: KeyGroup() {
+    val url = StringKey("jdbc:sqlite:db.bin")
+    val driver = StringKey("org.sqlite.JDBC")
+}
+
 object Timings: KeyGroup() {
     val quoteDelay = LongKey(15000L)
     val quoteFadeIn = LongKey(750L)
@@ -75,8 +80,13 @@ object Network: KeyGroup() {
 }
 
 object Security: KeyGroup() {
-    val sslCertificate = StringKey("./sslCertificate.key")
-    val sslCertificatePassword = StringKey("PLEASE CHANGE THIS")
+    val httpsCertificate = StringKey("./httpsCertificate.key")
+    val httpsCertificatePassword = StringKey("PLEASE CHANGE THIS")
+    val wssCertificate = StringKey("./wssCertificate.key")
+    val wssCertificatePassword = StringKey("PLEASE CHANGE THIS")
+    val rsaKeystore = StringKey("./rsa.key")
+    val rsaUser = StringKey("PLEASE CHANGE THIS")
+    val rsaPassword = StringKey("PLEASE CHANGE THIS")
     val useSSL = BooleanKey(true)
 }
 

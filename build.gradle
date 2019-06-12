@@ -38,6 +38,12 @@ dependencies {
     
     // FreeMarker (Templating Engine)
     compile group: 'org.freemarker', name: 'freemarker', version: '2.3.28'
+
+    // SQLite Driver
+    compile "org.xerial:sqlite-jdbc:3.21.0.1"
+
+    // JBcrypt
+    compile group: 'org.mindrot', name: 'jbcrypt', version: '0.4'
 }
 
 task copyRuntimeLibs(type: Copy) {

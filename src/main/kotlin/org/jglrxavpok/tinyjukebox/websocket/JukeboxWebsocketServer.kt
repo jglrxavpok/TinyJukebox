@@ -5,9 +5,14 @@ import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 import org.jglrxavpok.tinyjukebox.TinyJukebox
+import org.jglrxavpok.tinyjukebox.auth.RSAPublicKey
 import java.lang.Exception
 import java.lang.StringBuilder
 import java.net.InetSocketAddress
+import java.util.*
+import java.util.Base64.getEncoder
+
+
 
 /**
  * Represents the WebSocket server
@@ -15,6 +20,9 @@ import java.net.InetSocketAddress
 class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(address) {
     override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) {
         conn?.send("Welcome!")
+        val encodedPublicKey = RSAPublicKey.encoded
+        val publicKey64 = Base64.getEncoder().encodeToString(encodedPublicKey)
+        conn?.send("PublicKey\n-----BEGIN RSA PRIVATE KEY-----\n$publicKey64\n-----END RSA PRIVATE KEY-----")
         sendQueue(conn)
         println("client arrived!")
     }

@@ -9,18 +9,37 @@ import javax.swing.JPasswordField
 private val scanner by lazy { Scanner(System.`in`) }
 
 fun main(args: Array<String>) {
-    when(args.getOrError(0)) {
-        "newadmin" -> {
-            newadmin()
+    Config.load()
+    println("Connecting to database...")
+    TJDatabase.init()
+    do {
+        var stop = false
+        println("Command: ")
+        val command = scanner.nextLine()
+        when(command) {
+            "stop", "exit", "q" -> {
+                stop = true
+            }
+            "newaccount" -> {
+                newaccount()
+            }
+            "newadmin" -> {
+                newadmin()
+            }
+            else -> println("Not understood")
         }
-        else -> println("Not understood")
-    }
+    } while(!stop)
 }
 
 fun newadmin() {
     val username = prompt("Username", password = false)
+    TJDatabase.forceAddAdmin(String(username))
+}
+
+fun newaccount() {
+    val username = prompt("Username", password = false)
     val password = prompt("Password", password = true)
-    AuthChecker.addNewAdminAccount(String(username), password)
+    TJDatabase.newUser(String(username), String(password), null)
 }
 
 private fun prompt(message: String, password: Boolean): CharArray {

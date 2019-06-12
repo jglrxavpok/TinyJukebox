@@ -1,6 +1,7 @@
 import fr.gpotter2.SSLServerSocketKeystoreFactory
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory
 import org.jglrxavpok.tinyjukebox.*
+import org.jglrxavpok.tinyjukebox.auth.RSALoadKeyOrCreate
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.websocket.JukeboxWebsocketServer
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
@@ -45,23 +46,33 @@ fun main() {
     System.setOut(PrintStream(dualOut, true))
     System.setErr(PrintStream(dualErr, true))
     Config.load()
+    println("Loading Database...")
+    TJDatabase.init()
+    println("Finished loading!")
+
     MusicPlayer.start() // start Music playing thread
 
+    println("Starting sockets")
     // start http(s) and websocket servers
     val websocket = JukeboxWebsocketServer(InetSocketAddress(Config[Network.websocketPort]))
     val httpSocket: ServerSocket
     httpSocket = if(Config[Security.useSSL]) {
-        val path = Config[Security.sslCertificate]
-        val password = Config[Security.sslCertificatePassword]
+        val pathHTTPS = Config[Security.httpsCertificate]
+        val passwordHTTPS = Config[Security.httpsCertificatePassword]
+        val pathWSS = Config[Security.wssCertificate]
+        val passwordWSS = Config[Security.wssCertificatePassword]
         val port = Config[Network.httpsPort]
-        val sslContext = SSLServerSocketKeystoreFactory.getSSLContextWithCert(path, password, SSLServerSocketKeystoreFactory.ServerSecureType.TLSv1_2)
-        val socketFactory = sslContext.serverSocketFactory as SSLServerSocketFactory
-        websocket.setWebSocketFactory(DefaultSSLWebSocketServerFactory( sslContext ))
+        val sslContextHTTPS = SSLServerSocketKeystoreFactory.getSSLContextWithCert(pathHTTPS, passwordHTTPS, SSLServerSocketKeystoreFactory.ServerSecureType.TLSv1_2)
+        val sslContextWSS = SSLServerSocketKeystoreFactory.getSSLContextWithCert(pathWSS, passwordWSS, SSLServerSocketKeystoreFactory.ServerSecureType.TLSv1_2)
+        val socketFactory = sslContextHTTPS.serverSocketFactory as SSLServerSocketFactory
+        websocket.setWebSocketFactory(DefaultSSLWebSocketServerFactory( sslContextWSS ))
         socketFactory.createServerSocket(port) as SSLServerSocket
     } else {
-        System.err.println("You are not using a secure connection! Consider creating your own certificate and setting 'Security.useSSL' to true in the configuration file")
+        System.err.println("You are not using a secure connection! TinyJukebox always creates a RSA public/private key pair for communication but consider creating your own certificate and setting 'Security.useSSL' to true in the configuration file")
         ServerSocket(Config[Network.httpsPort])
     }
+
+    RSALoadKeyOrCreate(Config[Security.rsaKeystore])
 
     TinyJukebox.setWebsocket(websocket)
     websocket.start()

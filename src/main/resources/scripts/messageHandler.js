@@ -170,6 +170,15 @@ function($, bootstrap, playerControl, auth, quote, numeral) {
             case "quote":
                 quote.handleNewQuote(lines[1]);
                 break;
+
+            case "PublicKey":
+                auth.publicKey = lines.slice(1).join("\n");
+                console.log("Received pub key: "+auth.publicKey);
+                break;
+
+            default:
+                console.error("Unknown message type "+lines[0]);
+                break;
         }
     };
 }

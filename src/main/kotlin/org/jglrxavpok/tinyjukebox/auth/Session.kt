@@ -5,6 +5,7 @@ import org.jglrxavpok.tinyjukebox.Timings
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidCredentialsException
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidSessionException
 import java.io.BufferedReader
+import java.io.InputStream
 import java.io.PrintWriter
 import java.util.*
 
@@ -58,7 +59,7 @@ class Session(val id: UUID, val username: String, val expirementDate: Long) {
             }
         }
 
-        fun logout(writer: PrintWriter, clientReader: BufferedReader, username: String, passwordHash: String) {
+        fun logout(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>) {
             Session.close(clientReader.readLine())
         }
 

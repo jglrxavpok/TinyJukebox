@@ -1,3 +1,1 @@
 rootProject.name = 'tinyjukebox'
-
-include 'server', 'common', 'client'

@@ -147,7 +147,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
      * Sends a given page or sends a 404 error
      */
     private fun serve(pageName: String) {
-        val resourceStream = javaClass.getResourceAsStream(pageName) ?: return htmlError(404, pageName)
+        val resourceStream = javaClass.getResourceAsStream(pageName) ?: return htmlError(404)
         htmlError(200, type=getMimeFromExtension(pageName))
         if(pageName.endsWith(".png")) {
             client.getOutputStream().write(resourceStream.readBytes())

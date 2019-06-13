@@ -96,7 +96,7 @@ object MusicPlayer: Thread("Music Player") {
                     sourceDataLine.start()
 
                     // read buffer
-                    val buffer = ByteArray(1024*8*1024)
+                    val buffer = ByteArray(1024*8)
                     bytesRead = 0
 
                     state.setPlaying(music, din.format)

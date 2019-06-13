@@ -175,7 +175,6 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
 
     private fun getMimeFromExtension(pageName: String): String {
         val extension = pageName.substringAfterLast(".")
-        println("MIME FOR $extension")
         return when(extension) {
             "css" -> "text/css"
             "js" -> "text/javascript"

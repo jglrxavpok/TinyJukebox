@@ -122,6 +122,10 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
         }
     });
 
+    $("#mainLoginButton").on('click', function(e) {
+        auth.currentCallback = auth.login;
+        auth.sendRequest(usernameInput.val(), passwordInput.val());
+    });
 
     $("#loginButton").on('click', function(e) {
         auth.requestAuth(auth.login);

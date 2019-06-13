@@ -143,7 +143,7 @@ function($, bootstrap, playerControl, auth, quote, numeral) {
                     document.title="♪ TinyJukebox - "+name+` (${totalTime})`;
                     var percent = Math.round(lines[5]*1000)/10;
                     playingContainer.html(`
-                        <div class="border rounded m-1">
+                        <div class="playingContainerContent border rounded m-1">
                             <p class="fluid-container text-center"><h3 class="display-3 text-center">${name}</h3></p>
                             <div class="d-flex justify-content-between">
                                 <div>00:00:00</div>

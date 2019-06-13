@@ -1,6 +1,7 @@
 package org.jglrxavpok.tinyjukebox.auth
 
 import org.jglrxavpok.tinyjukebox.Config
+import org.jglrxavpok.tinyjukebox.TJDatabase
 import org.jglrxavpok.tinyjukebox.Timings
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidCredentialsException
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidSessionException
@@ -12,7 +13,7 @@ import java.util.*
 class Session(val id: UUID, val username: String, val expirementDate: Long) {
 
     companion object {
-        val Anonymous = Session(UUID.fromString("00000000-0000-0000-0000-000000000000"), "", Long.MAX_VALUE)
+        val Anonymous = Session(UUID.fromString("00000000-0000-0000-0000-000000000000"), "<ANONYMOUS>", Long.MAX_VALUE)
 
         private val idMap = HashMap<String, Session>()
 
@@ -59,7 +60,21 @@ class Session(val id: UUID, val username: String, val expirementDate: Long) {
             }
         }
 
-        fun logout(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>) {
+        fun signup(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>, session: Session) {
+            try {
+                val username = clientReader.readLine()
+                val password = RSADecode(clientReader.readLine())
+                TJDatabase.newUser(username, password, null)
+                writer.println("yes")
+                login(writer, clientReader, username, password)
+            } catch (e: UserAlreadyExistsException) {
+                e.printStackTrace()
+                writer.println("no")
+                writer.println("User already exists!")
+            }
+        }
+
+        fun logout(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>, session: Session) {
             Session.close(clientReader.readLine())
         }
 

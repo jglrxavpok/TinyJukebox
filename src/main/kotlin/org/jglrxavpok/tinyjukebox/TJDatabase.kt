@@ -2,14 +2,13 @@ package org.jglrxavpok.tinyjukebox
 
 import org.jetbrains.exposed.dao.IntIdTable
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jglrxavpok.tinyjukebox.auth.AuthenticationException
+import org.jglrxavpok.tinyjukebox.auth.Session
 import org.jglrxavpok.tinyjukebox.auth.UserAlreadyExistsException
 import org.joda.time.DateTime
 import org.mindrot.jbcrypt.BCrypt
-import java.lang.IllegalArgumentException
 import java.sql.Connection
 
 /**
@@ -29,6 +28,7 @@ object TJDatabase {
      * Table of Users
      */
     object Users: IntIdTable() {
+        //val index = integer("index").uniqueIndex().autoIncrement()
         val name = varchar("name", 100).primaryKey()
         val hashedPassword = varchar("hash", 200)
         val salt = varchar("salt", 200)
@@ -40,7 +40,23 @@ object TJDatabase {
      * Table of admins
      */
     object Admins: IntIdTable() {
+     //   val index = integer("index").uniqueIndex().autoIncrement()
         val name = varchar("name", 100).primaryKey()
+    }
+
+    object Musics: IntIdTable() {
+     //   val index = integer("index").uniqueIndex().autoIncrement()
+        val name = varchar("name", 100).primaryKey()
+        val musicSource = varchar("source", 100).primaryKey()
+        val length = long("length")
+        val timesPlayedTotal = integer("timesPlayed")
+    }
+
+    object Favorites: IntIdTable() {
+     //   val index = integer("index").uniqueIndex().autoIncrement()
+        val user = varchar("user", 100).primaryKey() references Users.name
+        val music = varchar("music", 100).primaryKey() references Musics.name
+        val timesPlayed = integer("timesPlayed")
     }
 
     /**
@@ -138,7 +154,38 @@ object TJDatabase {
         transaction {
             addLogger(StdOutSqlLogger)
 
-            SchemaUtils.createMissingTablesAndColumns(Users, Admins)
+            SchemaUtils.createMissingTablesAndColumns(Users, Admins, Musics, Favorites)
+        }
+    }
+
+    fun onMusicUpload(session: Session, music: Music) {
+        println(">> ${session.username}")
+        transaction {
+            if(Musics.select { Musics.name eq music.name }.empty()) {
+                Musics.insertIgnore {
+                    it[name] = music.name
+                    it[timesPlayedTotal] = 0
+                    it[length] = music.duration
+                    it[musicSource] = music.source.javaClass.simpleName
+                }
+            }
+            Musics.update({ Musics.name eq music.name }) {
+                with(SqlExpressionBuilder) {
+                    it.update(timesPlayedTotal, timesPlayedTotal+1)
+                }
+            }
+            if(Favorites.select { (Favorites.music eq music.name) and (Favorites.user eq session.username) }.empty()) {
+                Favorites.insertIgnore {
+                    it[user] = session.username
+                    it[Favorites.music] = music.name
+                    it[timesPlayed] = 0
+                }
+            }
+            Favorites.update({ (Favorites.music eq music.name) and (Favorites.user eq session.username) }) {
+                with(SqlExpressionBuilder) {
+                    it.update(timesPlayed, timesPlayed +1)
+                }
+            }
         }
     }
 }

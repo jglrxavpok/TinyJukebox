@@ -16,8 +16,8 @@ object AuthChecker {
     /**
      * Generates a function to be used in WebActions
      */
-    fun checkAuth(callback: ((PrintWriter, BufferedReader, String, String) -> Unit)?): (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>, Map<String, String>) -> Unit {
-        return { writer, length, reader, input, attributes, cookies ->
+    fun checkAuth(callback: ((PrintWriter, BufferedReader, String, String) -> Unit)?): (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>, Map<String, String>, Session) -> Unit {
+        return { writer, length, reader, input, attributes, cookies, session ->
             val username = reader.readLine()
             val passwordClear = RSADecode(reader.readLine())
 

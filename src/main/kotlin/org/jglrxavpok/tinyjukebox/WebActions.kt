@@ -32,7 +32,7 @@ object WebActions {
     /**
      * An action
      */
-    open class Action(val id: String, val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>, Map<String, String>/*cookies*/) -> Unit)
+    open class Action(val id: String, val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>, Map<String, String>/*cookies*/, Session) -> Unit)
 
     /**
      * List of all actions supported by TinyJukebox
@@ -50,6 +50,7 @@ object WebActions {
         Action("playercontrol/movedown", AuthChecker.checkAuth(this::moveDown)), // move the selected track up the queue
 
         Action("login", AuthChecker.checkAuth(Session.Companion::login)), // move the selected track up the queue
+        Action("signup", Session.Companion::signup), // move the selected track up the queue
         Action("logout", Session.Companion::logout) // move the selected track up the queue
     )
 
@@ -112,7 +113,7 @@ object WebActions {
     /**
      * Searches Youtube for the query given by the client in 'clientReader'/'clientInput'
      */
-    private fun ytsearch(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>) {
+    private fun ytsearch(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>, session: Session) {
         val query = clientReader.readLine()
         val queryURL = URL("https://www.youtube.com/results?search_query=${query.replace(" ", "+")}")
         val text = queryURL.readText(StandardCharsets.UTF_8)
@@ -150,7 +151,7 @@ object WebActions {
         return array
     }
 
-    private fun upload(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>) {
+    private fun upload(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>, session: Session) {
         val fileSource = attributes["File-Source"]
         val music: Music? = when(fileSource) {
             "Local" -> uploadLocal(clientReader, attributes)
@@ -158,6 +159,7 @@ object WebActions {
             else -> null
         }
         music?.let {
+            TJDatabase.onMusicUpload(session, music)
             TinyJukebox.addToQueue(it)
         }
     }
@@ -222,10 +224,11 @@ object WebActions {
         reader: BufferedReader,
         clientInput: InputStream,
         attributes: Map<String, String>,
-        cookies: Map<String, String>
+        cookies: Map<String, String>,
+        session: Session
     ) {
         try {
-            actionList.first { it.id.toLowerCase() == actionType.toLowerCase()}.action(writer, length, reader, clientInput, attributes, cookies)
+            actionList.first { it.id.toLowerCase() == actionType.toLowerCase()}.action(writer, length, reader, clientInput, attributes, cookies, session)
         } catch (e: Exception) {
             TinyJukebox.sendError(IllegalArgumentException("Failed to perform action: $e"))
             e.printStackTrace()

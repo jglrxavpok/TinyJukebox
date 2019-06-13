@@ -77,12 +77,20 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
             println(line) // TODO: debug only
         } while(line.isNotEmpty())
 
+        // load session infos
+        if(SessionIdCookie in cookies) {
+            try {
+                session = Session.load(cookies[SessionIdCookie]!!)
+            } catch (e: InvalidSessionException) {
+                session = Session.Anonymous
+            }
+        }
 
         if(location.startsWith("/action/")) {
             val actionType = location.substring("/action/".length)
             if(WebActions.isValidAction(actionType)) {
                 htmlError(200)
-                WebActions.perform(writer, actionType, length, reader, client.getInputStream(), attributes, cookies)
+                WebActions.perform(writer, actionType, length, reader, client.getInputStream(), attributes, cookies, session)
             } else {
                 htmlError(404)
             }

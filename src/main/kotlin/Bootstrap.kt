@@ -74,6 +74,8 @@ fun main() {
         System.err.println("You are not using a secure connection! TinyJukebox always creates a RSA public/private key pair for communication but consider creating your own certificate and setting 'Security.useSSL' to true in the configuration file")
         ServerSocket(Config[Network.httpsPort])
     }
+    httpSocket.reuseAddress = true
+    websocket.isReuseAddr = true
 
     RSALoadKeyOrCreate(Config[Security.rsaKeystore])
 

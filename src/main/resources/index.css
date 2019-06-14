@@ -7,7 +7,8 @@
 }
 
 .pagebottom {
-    position: absolute;
+    z-index: 0;
+    position: fixed;
     right: 0;
     bottom: 0;
     left: 0;
@@ -18,7 +19,17 @@
     background: rgba(0.2, 0.2, 0.2, 0.2);
 }
 
+.landingPopup {
+    position: relative;
+    z-index: 10 !important;
+}
+
 .landingBackground {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
     background: url("images/landingBackground.png");
     background-size: 100%;
 }

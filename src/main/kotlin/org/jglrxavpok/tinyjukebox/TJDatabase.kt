@@ -16,6 +16,9 @@ import java.sql.Connection
  */
 object TJDatabase {
 
+    private val PermissionList = listOf(
+        "lock", "remove", "move", "upload", "removeLocked", "modifyUser", "banUser"
+    )
     /**
      * Database object
      */
@@ -57,6 +60,17 @@ object TJDatabase {
         val user = varchar("user", 100).primaryKey() references Users.name
         val music = varchar("music", 100).primaryKey() references Musics.name
         val timesPlayed = integer("timesPlayed")
+    }
+
+    object Permissions: Table() {
+        val user = varchar("user", 100).primaryKey() references Users.name
+        val permission = varchar("permission", 100).primaryKey()
+
+        init {
+            permission.check {
+                permission inList PermissionList
+            }
+        }
     }
 
     /**
@@ -216,4 +230,32 @@ fun Transaction.checkUserExists(username: String): Boolean {
     return ! TJDatabase.Users.select {
         TJDatabase.Users.name eq username
     }.empty()
+}
+
+/**
+ * Checks that the given user exists
+ */
+fun Transaction.checkMusicExists(musicName: String): Boolean {
+    return ! TJDatabase.Musics.select {
+        TJDatabase.Musics.name eq musicName
+    }.empty()
+}
+
+/**
+ * Checks that the given user has the given permission
+ */
+fun Transaction.checkPermission(username: String, permission: String): Boolean {
+    return ! TJDatabase.Permissions.select {
+        (TJDatabase.Permissions.user eq username) and (TJDatabase.Permissions.permission eq permission)
+    }.empty()
+}
+
+/**
+ * Grants the given permission to a user
+ */
+fun Transaction.grantPermission(username: String, permission: String) {
+    TJDatabase.Permissions.insertIgnore {
+        it[user] = username
+        it[TJDatabase.Permissions.permission] = permission
+    }
 }

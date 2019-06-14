@@ -94,3 +94,8 @@
 .nav-link:active {
     text-decoration: none;
 }
+
+.usernameLink {
+    text-decoration: none;
+    color: white;
+}

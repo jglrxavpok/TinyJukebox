@@ -6,18 +6,20 @@ import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 import org.jglrxavpok.tinyjukebox.TinyJukebox
 import org.jglrxavpok.tinyjukebox.auth.RSAPublicKey
+import org.jglrxavpok.tinyjukebox.auth.Session
 import java.lang.Exception
 import java.lang.StringBuilder
 import java.net.InetSocketAddress
 import java.util.*
 import java.util.Base64.getEncoder
 
-
-
 /**
  * Represents the WebSocket server
  */
 class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(address) {
+
+    private val clientsConnected = hashSetOf<String>()
+
     override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) {
         conn?.send("Welcome!")
         val encodedPublicKey = RSAPublicKey.encoded
@@ -43,6 +45,15 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
         broadcast(buildQueueMessage())
     }
 
+    fun sendConnectedList() {
+        val listMessage = StringBuilder("connected")
+        clientsConnected.forEach {
+            listMessage.append("\n")
+            listMessage.append(it)
+        }
+        broadcast(listMessage.toString())
+    }
+
     /**
      * Prepares the WebSocket message to update the state of the queue on clients
      */
@@ -60,11 +71,32 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
     }
 
     override fun onClose(conn: WebSocket?, code: Int, reason: String?, remote: Boolean) {
-
+        val username = conn?.getAttachment<String>()
+        synchronized(clientsConnected) {
+            clientsConnected.remove(username)
+            sendConnectedList()
+        }
     }
 
     override fun onMessage(conn: WebSocket?, message: String?) {
+        message?.let {
+            when {
+                message.startsWith("SessionId") -> {
+                    val sessionID = message.split("\n")[1]
+                    val session = Session.load(sessionID)
+                    conn?.setAttachment(session.username)
+                    synchronized(clientsConnected) {
+                        println("${session.username} connected!")
+                        clientsConnected += session.username
+                        sendConnectedList()
+                    }
+                }
 
+                else -> {
+                    println("Unknown Websocket message ${message}")
+                }
+            }
+        }
     }
 
     override fun onStart() {

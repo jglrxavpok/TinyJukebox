@@ -189,6 +189,16 @@ function($, bootstrap, playerControl, auth, quote, numeral) {
                 console.log("Received pub key: "+auth.publicKey);
                 break;
 
+            case "connected": {
+                var connectedListContainer = $('#connectedList');
+                var html = "";
+                for (let i = 1; i < lines.length; i++) {
+                    html += `<a class="display-4 usernameLink" href="/user/${lines[i]}">${lines[i]}</a>`
+                }
+                connectedListContainer.html(html);
+                break;
+            }
+
             default:
                 console.error("Unknown message type "+lines[0]);
                 break;

@@ -1,17 +1,25 @@
 package org.jglrxavpok.tinyjukebox
 
 import html.htmlErrorCodeToName
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.jglrxavpok.tinyjukebox.auth.Session
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidSessionException
-import org.jglrxavpok.tinyjukebox.templating.Auth
-import org.jglrxavpok.tinyjukebox.templating.FreeMarker
+import org.jglrxavpok.tinyjukebox.templating.*
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.net.Socket
+import java.net.URLDecoder
 import java.nio.file.Paths
+import java.text.DecimalFormat
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.time.LocalTime
 import org.jglrxavpok.tinyjukebox.templating.Text as TemplatingText
 
 /**
@@ -24,6 +32,8 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
          * Name of the cookie holding the user's session id (when it exists)
          */
         const val SessionIdCookie = "SessionId"
+
+        val TimeFormat = SimpleDateFormat("HH:mm:ss")
     }
 
     /**
@@ -104,15 +114,6 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
      * @param location the requested location
      */
     fun get(location: String) {
-        // special cases
-        when(location) {
-            "/quote" -> {
-                htmlError(200, "Content-Type: text/plain; charset=utf-8")
-                writer.println(QuoteThread.currentQuote)
-                return
-            }
-        }
-
         do {
             val line = reader.readLine()
             if(line.startsWith("Cookie: ")) {
@@ -134,6 +135,67 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                 session = Session.load(cookies[SessionIdCookie]!!)
             } catch (e: InvalidSessionException) {
                 session = Session.Anonymous
+            }
+        }
+        // special cases
+        when {
+            location == "/quote" -> {
+                htmlError(200, "Content-Type: text/plain; charset=utf-8")
+                writer.println(QuoteThread.currentQuote)
+                return
+            }
+
+            location.startsWith("/user/") -> {
+                val user = URLDecoder.decode(location.substring("/user/".length), "UTF-8")
+                println(">> $user")
+                val exists = transaction {
+                    checkUserExists(user)
+                }
+                if(exists) {
+                    val userModel = hashMapOf<String, Any>()
+                    val favorites = transaction {
+                        TJDatabase.Favorites.select { TJDatabase.Favorites.user eq user }.orderBy(TJDatabase.Favorites.timesPlayed, SortOrder.DESC).take(3)
+                    }
+
+                    val none = NameFrequencyPair("NONE", 0)
+
+                    fun NameFrequencyPair(row: ResultRow) = NameFrequencyPair(row[TJDatabase.Favorites.music], row[TJDatabase.Favorites.timesPlayed])
+
+                    val first = if(favorites.isEmpty()) none else NameFrequencyPair(favorites[0])
+                    val second = if(favorites.size < 2) none else NameFrequencyPair(favorites[1])
+                    val third = if(favorites.size < 3) none else NameFrequencyPair(favorites[2])
+
+                    userModel.put("user", User(user, Favorites(first, second, third)))
+
+                    if(session.username == user) {
+                        // TODO: show non-public info
+                    }
+                    serve("/users/user.html", userModel)
+                } else {
+                    val model = hashMapOf<String, Any>()
+                    model["name"] = user
+                    serve("/users/unknown.html", model)
+                }
+                return
+            }
+
+            location.startsWith("/music/") -> {
+                val music = URLDecoder.decode(location.substring("/music/".length), "UTF-8")
+                val exists = transaction {
+                    checkMusicExists(music)
+                }
+                if(exists) {
+                    val musicModel = hashMapOf<String, Any>()
+                    val musicInfo = transaction { TJDatabase.Musics.select { TJDatabase.Musics.name eq music }.first() }
+                    val duration = LocalTime.ofSecondOfDay(musicInfo[TJDatabase.Musics.length]/1000)
+                    musicModel["music"] = MusicModel(music, musicInfo[TJDatabase.Musics.timesPlayedTotal], duration.toString())
+                    serve("/musics/music.html", musicModel)
+                } else {
+                    val model = hashMapOf<String, Any>()
+                    model["name"] = music
+                    serve("/musics/unknown.html", model)
+                }
+                return
             }
         }
 
@@ -161,7 +223,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
     /**
      * Sends a given page or sends a 404 error
      */
-    private fun serve(pageName: String) {
+    private fun serve(pageName: String, baseDataModel: Map<String, Any> = emptyMap()) {
         val resourceStream = javaClass.getResourceAsStream(pageName) ?: return htmlError(404)
         htmlError(200, type=getMimeFromExtension(pageName))
         if(pageName.endsWith(".png")) {
@@ -169,6 +231,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
             client.getOutputStream().flush()
         } else if(pageName.endsWith(".html")) {
             val dataModel = hashMapOf<String, Any>()
+            dataModel += baseDataModel
             if(session != Session.Anonymous) {
                 dataModel["auth"] = Auth(session.username)
             }

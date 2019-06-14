@@ -10,8 +10,8 @@ requirejs.config({
     paths: pathsObject
 });
 
-requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler', 'youtube-search/search', 'playerControl'],
-function   ($, bootstrap, quote, config, about, messageHandler, playerControl) {
+requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler', 'youtube-search/search', 'playerControl', 'auth'],
+function   ($, bootstrap, quote, config, about, messageHandler, playerControl, auth) {
     $('.alert').alert();
 
     quote.init(); // force the quote to appear right at the start
@@ -27,6 +27,7 @@ function   ($, bootstrap, quote, config, about, messageHandler, playerControl) {
 
     socket.onopen = function (ev) {
         queueContainer.text("Connected!");
+        socket.send("SessionId\n"+getCookie("SessionId")+"\n");
     };
 
     socket.onmessage = function (ev) {

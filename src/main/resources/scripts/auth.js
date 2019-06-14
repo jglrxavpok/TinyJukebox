@@ -1,11 +1,30 @@
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+
 define(['jquery', 'jsencrypt'], function($, jsencrypt) {
     var authModal = $('#authModal');
     var alertContainer = $("#alertContainer");
     var auth = {
+
+
         currentCallback: undefined,
         publicKey: undefined,
         username: undefined,
-        sessionID: undefined,
+
+        sessionID: getCookie("SessionId"),
 
         /**
          * Opens the auth modal and calls the given callback if the auth passed

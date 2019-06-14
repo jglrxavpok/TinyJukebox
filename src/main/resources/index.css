@@ -20,6 +20,7 @@
 
 .landingBackground {
     background: url("images/landingBackground.png");
+    background-size: 100%;
 }
 
 .softLandingBackground {

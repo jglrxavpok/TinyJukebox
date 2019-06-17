@@ -6,12 +6,16 @@ import org.jglrxavpok.tinyjukebox.Timings
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidCredentialsException
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidSessionException
 import org.jglrxavpok.tinyjukebox.exceptions.UserNotPermittedException
+import org.jglrxavpok.tinyjukebox.http.HttpInfo
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.PrintWriter
 import java.util.*
 
 class Session(val id: UUID, val username: String, val expirementDate: Long) {
+
+    val expired: Boolean
+        get() = expirementDate < System.currentTimeMillis()
 
     companion object {
         val Anonymous = Session(UUID.fromString("00000000-0000-0000-0000-000000000000"), "<ANONYMOUS>", Long.MAX_VALUE)
@@ -51,32 +55,53 @@ class Session(val id: UUID, val username: String, val expirementDate: Long) {
             return UUID.randomUUID()
         }
 
-        fun login(writer: PrintWriter, clientReader: BufferedReader, username: String, passwordHash: String) {
-            try {
-                val session = Session.open(username, passwordHash)
-                writer.println(session.id.toString())
-            } catch (e: InvalidCredentialsException) {
-                e.printStackTrace()
-                writer.println("no")
-            }
-        }
-
-        fun signup(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>, session: Session) {
-            try {
+        fun login(httpInfo: HttpInfo) {
+            with(httpInfo) {
                 val username = clientReader.readLine()
                 val password = RSADecode(clientReader.readLine())
-                TJDatabase.newUser(username, password, null)
-                writer.println("yes")
-                login(writer, clientReader, username, password)
-            } catch (e: UserAlreadyExistsException) {
-                e.printStackTrace()
-                writer.println("no")
-                writer.println("User already exists!")
+                login(httpInfo, username, password)
             }
         }
 
-        fun logout(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>, session: Session) {
-            Session.close(clientReader.readLine())
+        fun login(httpInfo: HttpInfo, username: String, passwordPlain: String) {
+            with(httpInfo) {
+                try {
+                    val session = Session.open(username, passwordPlain)
+                    writer.println("yes")
+                    writer.println(session.id.toString())
+                } catch (e: InvalidCredentialsException) {
+                    e.printStackTrace()
+                    writer.println("no")
+                }
+            }
+        }
+
+        fun signup(httpInfo: HttpInfo) {
+            with(httpInfo) {
+                val username = clientReader.readLine()
+                val password = RSADecode(clientReader.readLine())
+                signup(httpInfo, username, password)
+            }
+        }
+
+        fun signup(httpInfo: HttpInfo, username: String, passwordPlain: String) {
+            with(httpInfo) {
+                try {
+                    TJDatabase.newUser(username, passwordPlain, null)
+                    writer.println("yes")
+                    login(httpInfo, username, passwordPlain)
+                } catch (e: UserAlreadyExistsException) {
+                    e.printStackTrace()
+                    writer.println("no")
+                    writer.println("User already exists!")
+                }
+            }
+        }
+
+        fun logout(httpInfo: HttpInfo) {
+            with(httpInfo) {
+                Session.close(clientReader.readLine())
+            }
         }
 
         fun exists(sessionId: String): Boolean {

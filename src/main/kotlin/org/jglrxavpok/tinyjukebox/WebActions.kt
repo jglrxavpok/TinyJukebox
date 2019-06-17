@@ -6,6 +6,7 @@ import org.jglrxavpok.tinyjukebox.auth.AuthChecker
 import org.jglrxavpok.tinyjukebox.auth.Permissions
 import org.jglrxavpok.tinyjukebox.auth.Session
 import org.jglrxavpok.tinyjukebox.auth.Session.Companion.login
+import org.jglrxavpok.tinyjukebox.http.HttpInfo
 import org.jglrxavpok.tinyjukebox.player.FileSource
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.player.YoutubeSource
@@ -34,7 +35,7 @@ object WebActions {
      * An action
      */
     open class Action(val id: String,
-                      val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>, Map<String, String>/*cookies*/, Session) -> Unit,
+                      val action: (HttpInfo) -> Unit,
                       vararg _requiredPermissions: Permissions
                       ) {
         val requiredPermissions = arrayListOf(*_requiredPermissions)
@@ -47,87 +48,108 @@ object WebActions {
         Action("upload", this::upload, Permissions.Upload), // upload a local or a youtube link
         Action("ytsearch", this::ytsearch, Permissions.Upload), // search a video on YT
         Action("auth", AuthChecker.checkAuth(null)), // check authenfication
-        Action("playercontrol/empty", AuthChecker.checkAuth { writer, reader, username, passwordHash -> TinyJukebox.emptyQueue()}, Permissions.EmptyQueue), // empty the current queue, requires authentification
-        Action("playercontrol/skip", AuthChecker.checkAuth { writer, reader, username, passwordHash -> MusicPlayer.skip()}, Permissions.Skip), // skips the current track, requires authentification
-        Action("playercontrol/remove", AuthChecker.checkAuth(this::removeFromQueue), Permissions.Remove), // remove the selected track, requires authentification
-        Action("playercontrol/movetostart", AuthChecker.checkAuth(this::moveToStart), Permissions.Move), // move the selected track at the head of the queue
-        Action("playercontrol/movetoend", AuthChecker.checkAuth(this::moveToEnd), Permissions.Move), // move the selected track at the bottom the queue
-        Action("playercontrol/moveup", AuthChecker.checkAuth(this::moveUp), Permissions.Move), // move the selected track up the queue
-        Action("playercontrol/movedown", AuthChecker.checkAuth(this::moveDown), Permissions.Move), // move the selected track up the queue
+        Action("playercontrol/empty", TinyJukebox::emptyQueue, Permissions.EmptyQueue), // empty the current queue, requires authentification
+        Action("playercontrol/skip", this::skip, Permissions.Skip), // skips the current track, requires authentification
+        Action("playercontrol/remove", this::removeFromQueue, Permissions.Remove), // remove the selected track, requires authentification
+        Action("playercontrol/movetostart", this::moveToStart, Permissions.Move), // move the selected track at the head of the queue
+        Action("playercontrol/movetoend", this::moveToEnd, Permissions.Move), // move the selected track at the bottom the queue
+        Action("playercontrol/moveup", this::moveUp, Permissions.Move), // move the selected track up the queue
+        Action("playercontrol/movedown", this::moveDown, Permissions.Move), // move the selected track up the queue
 
-        Action("login", AuthChecker.checkAuth(Session.Companion::login)), // move the selected track up the queue
+        Action("login", Session.Companion::login), // move the selected track up the queue
         Action("signup", Session.Companion::signup), // move the selected track up the queue
         Action("logout", Session.Companion::logout) // move the selected track up the queue
     )
 
+    private fun skip(httpInfo: HttpInfo) {
+        MusicPlayer.skip()
+        MusicPlayer.state.currentMusic?.let {
+            TJDatabase.onMusicSkip(it.name)
+        }
+    }
+
     /**
      * Remove tracks named as given by the client in 'clientReader'
      */
-    private fun removeFromQueue(writer: PrintWriter, clientReader: BufferedReader, username: String, passwordHash: String) {
-        val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
-        println("remove: $nameToRemove")
-        val index = clientReader.readLine().toInt()
-        if(!TinyJukebox.removeFromQueue(nameToRemove, index)) {
-            writer.println("invalid position")
+    private fun removeFromQueue(httpInfo: HttpInfo) {
+        with(httpInfo) {
+            val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
+            println("remove: $nameToRemove")
+            val index = clientReader.readLine().toInt()
+            if(!TinyJukebox.removeFromQueue(nameToRemove, index)) {
+                writer.println("invalid position")
+            } else {
+                TJDatabase.onMusicSkip(nameToRemove)
+            }
         }
     }
 
     /**
      * Moves a track named as given by the client in 'clientReader'
      */
-    private fun moveToStart(writer: PrintWriter, clientReader: BufferedReader, username: String, passwordHash: String) {
-        val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
-        val index = clientReader.readLine().toInt()
-        if(!TinyJukebox.moveToStart(nameToRemove, index)) {
-            writer.println("invalid position")
+    private fun moveToStart(httpInfo: HttpInfo) {
+        with(httpInfo) {
+            val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
+            val index = clientReader.readLine().toInt()
+            if(!TinyJukebox.moveToStart(nameToRemove, index)) {
+                writer.println("invalid position")
+            }
         }
     }
 
     /**
      * Moves a track named as given by the client in 'clientReader'
      */
-    private fun moveToEnd(writer: PrintWriter, clientReader: BufferedReader, username: String, passwordHash: String) {
-        val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
-        val index = clientReader.readLine().toInt()
-        if(!TinyJukebox.moveToEnd(nameToRemove, index)) {
-            writer.println("invalid position")
+    private fun moveToEnd(httpInfo: HttpInfo) {
+        with(httpInfo) {
+            val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
+            val index = clientReader.readLine().toInt()
+            if(!TinyJukebox.moveToEnd(nameToRemove, index)) {
+                writer.println("invalid position")
+            }
         }
     }
 
     /**
      * Moves a track named as given by the client in 'clientReader'
      */
-    private fun moveUp(writer: PrintWriter, clientReader: BufferedReader, username: String, passwordHash: String) {
-        val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
-        val index = clientReader.readLine().toInt()
-        if(!TinyJukebox.moveUp(nameToRemove, index)) {
-            writer.println("invalid position")
+    private fun moveUp(httpInfo: HttpInfo) {
+        with(httpInfo) {
+            val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
+            val index = clientReader.readLine().toInt()
+            if(!TinyJukebox.moveUp(nameToRemove, index)) {
+                writer.println("invalid position")
+            }
         }
     }
 
     /**
      * Moves a track named as given by the client in 'clientReader'
      */
-    private fun moveDown(writer: PrintWriter, clientReader: BufferedReader, username: String, passwordHash: String) {
-        val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
-        val index = clientReader.readLine().toInt()
-        if(!TinyJukebox.moveDown(nameToRemove, index)) {
-            writer.println("invalid position")
+    private fun moveDown(httpInfo: HttpInfo) {
+        with(httpInfo) {
+            val nameToRemove = URLDecoder.decode(clientReader.readLine(), "UTF-8")
+            val index = clientReader.readLine().toInt()
+            if(!TinyJukebox.moveDown(nameToRemove, index)) {
+                writer.println("invalid position")
+            }
         }
     }
 
     /**
      * Searches Youtube for the query given by the client in 'clientReader'/'clientInput'
      */
-    private fun ytsearch(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>, session: Session) {
-        val query = clientReader.readLine()
-        val queryURL = URL("https://www.youtube.com/results?search_query=${query.replace(" ", "+")}")
-        val text = queryURL.readText(StandardCharsets.UTF_8)
+    private fun ytsearch(httpInfo: HttpInfo) {
+        with(httpInfo) {
+            val query = clientReader.readLine()
+            val queryURL = URL("https://www.youtube.com/results?search_query=${query.replace(" ", "+")}")
+            val text = queryURL.readText(StandardCharsets.UTF_8)
 
-        // for debug File("./tmp.txt").writeText(text)
-        val interestingPart = text.substring(text.indexOf("<span class=\"video-time\"") .. text.lastIndexOf("</div><div class=\"yt-lockup-meta \""))
-        // for debug  File("./tmp2.txt").writeText(interestingPart)
-        writer.println(createAnswerJson(interestingPart))
+            // for debug File("./tmp.txt").writeText(text)
+            val interestingPart = text.substring(text.indexOf("<span class=\"video-time\"") .. text.lastIndexOf("</div><div class=\"yt-lockup-meta \""))
+            // for debug  File("./tmp2.txt").writeText(interestingPart)
+            writer.println(createAnswerJson(interestingPart))
+        }
     }
 
     /**
@@ -157,16 +179,18 @@ object WebActions {
         return array
     }
 
-    private fun upload(writer: PrintWriter, length: Long, clientReader: BufferedReader, clientInput: InputStream, attributes: Map<String, String>, cookies: Map<String, String>, session: Session) {
-        val fileSource = attributes["File-Source"]
-        val music: Music? = when(fileSource) {
-            "Local" -> uploadLocal(clientReader, attributes)
-            "Youtube" -> uploadYoutube(clientReader, attributes)
-            else -> null
-        }
-        music?.let {
-            TJDatabase.onMusicUpload(session, music)
-            TinyJukebox.addToQueue(it)
+    private fun upload(httpInfo: HttpInfo) {
+        with(httpInfo) {
+            val fileSource = attributes["File-Source"]
+            val music: Music? = when(fileSource) {
+                "Local" -> uploadLocal(clientReader, attributes)
+                "Youtube" -> uploadYoutube(clientReader, attributes)
+                else -> null
+            }
+            music?.let {
+                TJDatabase.onMusicUpload(session, music)
+                TinyJukebox.addToQueue(it)
+            }
         }
     }
 
@@ -223,20 +247,13 @@ object WebActions {
     /**
      * Perform an action from 'actionList' based on 'actionType' and the data the client is sending
      */
-    fun perform(
-        writer: PrintWriter,
-        actionType: String,
-        length: Long,
-        reader: BufferedReader,
-        clientInput: InputStream,
-        attributes: Map<String, String>,
-        cookies: Map<String, String>,
-        session: Session
-    ) {
+    fun perform(httpInfo: HttpInfo, actionType: String) {
         try {
-            val action = actionList.first { it.id.toLowerCase() == actionType.toLowerCase()}
-            session.checkPermissions(action.requiredPermissions)
-            action.action(writer, length, reader, clientInput, attributes, cookies, session)
+            with(httpInfo) {
+                val action = actionList.first { it.id.toLowerCase() == actionType.toLowerCase()}
+                session.checkPermissions(action.requiredPermissions)
+                action.action(httpInfo)
+            }
         } catch (e: Exception) {
             TinyJukebox.sendError(IllegalArgumentException("Failed to perform action: $e"))
             e.printStackTrace()

@@ -1,7 +1,7 @@
 define(['jquery', 'auth'], function($, auth) {
     var alertContainer = $("#alertContainer");
     var playerControl = {
-        sendSkipRequest: function(username, password) {
+        sendSkipRequest: function(sessionID) {
             var xhttp = new XMLHttpRequest();
             xhttp.open("POST", "/action/playercontrol/skip", true);
 
@@ -20,10 +20,10 @@ define(['jquery', 'auth'], function($, auth) {
                     );
                 }
             };
-            xhttp.send(username+"\n"+password+"\n");
+            xhttp.send("\n");
         },
 
-        sendEmptyRequest: function(username, password) {
+        sendEmptyRequest: function(sessionID) {
             var xhttp = new XMLHttpRequest();
             xhttp.open("POST", "/action/playerControl/empty", true);
             xhttp.onload = function() {
@@ -42,11 +42,11 @@ define(['jquery', 'auth'], function($, auth) {
                 }
             };
             xhttp.setRequestHeader("Content-Type", "application/octet-stream");
-            xhttp.send(username+"\n"+password+"\n");
+            xhttp.send("\n");
         },
 
         sendMusicControlRequestSupplier: function(name, index, action) {
-            return function(username, password) {
+            return function(sessionID) {
                 var xhttp = new XMLHttpRequest();
                 xhttp.open("POST", "/action/playerControl/"+action, true);
                 xhttp.onload = function () {
@@ -76,7 +76,7 @@ define(['jquery', 'auth'], function($, auth) {
                     }
                 };
                 xhttp.setRequestHeader("Content-Type", "application/octet-stream");
-                xhttp.send(username + "\n" + password + "\n"+name+"\n"+index+"\n");
+                xhttp.send(name+"\n"+index+"\n");
             }
         },
 

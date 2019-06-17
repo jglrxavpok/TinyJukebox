@@ -1,7 +1,12 @@
 package org.jglrxavpok.tinyjukebox
 
+import org.jglrxavpok.tinyjukebox.auth.Session
+import org.jglrxavpok.tinyjukebox.http.HttpInfo
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.websocket.JukeboxWebsocketServer
+import java.io.BufferedReader
+import java.io.InputStream
+import java.io.PrintWriter
 import java.lang.Exception
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Collectors
@@ -46,7 +51,7 @@ object TinyJukebox {
     /**
      * Empty the queue and send a update to clients
      */
-    fun emptyQueue() {
+    fun emptyQueue(httpInfo: HttpInfo) {
         performChangesToQueue {
             clear()
             sendQueueUpdate()

@@ -2,6 +2,7 @@ import fr.gpotter2.SSLServerSocketKeystoreFactory
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory
 import org.jglrxavpok.tinyjukebox.*
 import org.jglrxavpok.tinyjukebox.auth.RSALoadKeyOrCreate
+import org.jglrxavpok.tinyjukebox.http.HttpHandler
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.templating.FreeMarker
 import org.jglrxavpok.tinyjukebox.websocket.JukeboxWebsocketServer

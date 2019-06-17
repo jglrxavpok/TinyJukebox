@@ -52,6 +52,7 @@ object TJDatabase {
         val musicSource = varchar("source", 100).primaryKey()
         val length = long("length")
         val timesPlayedTotal = integer("timesPlayed")
+        val timesSkippedTotal = integer("timesSkipped")
     }
 
     object Favorites: IntIdTable() {
@@ -177,12 +178,12 @@ object TJDatabase {
     }
 
     fun onMusicUpload(session: Session, music: Music) {
-        println(">> ${session.username}")
         transaction {
             if(Musics.select { Musics.name eq music.name }.empty()) {
                 Musics.insertIgnore {
                     it[name] = music.name
                     it[timesPlayedTotal] = 0
+                    it[timesSkippedTotal] = 0
                     it[length] = music.duration
                     it[musicSource] = music.source.javaClass.simpleName
                 }
@@ -210,6 +211,16 @@ object TJDatabase {
     fun getPermissions(username: String): List<UserPermissions> {
         return transaction {
             Permissions.select { Permissions.user eq username }.adjustSlice { Permissions.slice(Permissions.permission) }.map { UserPermissions.valueOf(it[Permissions.permission]) }
+        }
+    }
+
+    fun onMusicSkip(name: String): Unit {
+        transaction {
+            Musics.update({ Musics.name eq name }) {
+                with(SqlExpressionBuilder) {
+                    it.update(timesSkippedTotal, timesSkippedTotal + 1)
+                }
+            }
         }
     }
 }

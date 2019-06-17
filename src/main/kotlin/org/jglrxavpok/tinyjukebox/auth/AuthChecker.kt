@@ -3,6 +3,7 @@ package org.jglrxavpok.tinyjukebox.auth
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jglrxavpok.tinyjukebox.TJDatabase
 import org.jglrxavpok.tinyjukebox.auth
+import org.jglrxavpok.tinyjukebox.http.HttpInfo
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
@@ -16,18 +17,17 @@ object AuthChecker {
     /**
      * Generates a function to be used in WebActions
      */
-    fun checkAuth(callback: ((PrintWriter, BufferedReader, String, String) -> Unit)?): (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>, Map<String, String>, Session) -> Unit {
-        return { writer, length, reader, input, attributes, cookies, session ->
-            val username = reader.readLine()
-            val passwordClear = RSADecode(reader.readLine())
-
-            if(checkAuth(username, passwordClear)) {
-                writer.println("yes")
-                if(callback != null) {
-                    callback(writer, reader, username, passwordClear)
+    fun checkAuth(callback: ((PrintWriter, BufferedReader, Session) -> Unit)?): (HttpInfo) -> Unit {
+        return { httpInfo ->
+            with(httpInfo) {
+                if(session.expired) {
+                    writer.println("yes")
+                    if(callback != null) {
+                        callback(writer, clientReader, session)
+                    }
+                } else {
+                    writer.println("no")
                 }
-            } else {
-                writer.println("no")
             }
         }
     }

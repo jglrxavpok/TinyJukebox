@@ -1,0 +1,107 @@
+.clickable {
+    cursor: pointer;
+}
+
+.clickable:hover {
+    color: lightskyblue;
+}
+
+.pagebottom {
+    z-index: 0;
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.playingContainerContent {
+    margin: 50px;
+    background: rgba(0.2, 0.2, 0.2, 0.2);
+}
+
+.landingPopup {
+    position: relative;
+    z-index: 10 !important;
+}
+
+.landingBackground {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: url("images/landingBackground.png");
+    background-size: 100%;
+}
+
+.softLandingBackground {
+    color: white;
+    background: rgba(0.2, 0.2, 0.2, 0.2);
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+}
+
+.landingTab  {
+    background-color: transparent;
+    border: medium none;
+    border-radius: 10px;
+}
+
+.tab-content {
+    background-color: transparent;
+    color:white;
+    padding:5px
+}
+
+.landingTab > li > a {
+    border: medium none;
+    border-radius: 10px;
+    background-color: rgba(0.1, 0.1, 0.1, 0.0) !important;
+}
+
+.title {
+    color: white;
+}
+
+.active {
+    background-color: transparent;
+    text-decoration: underline;
+    border-radius: 10px;
+    border: medium none transparent !important;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    color: white;
+}
+
+.nav-link.active {
+    background-color: rgba(0.2, 0.2, 0.2, 0.2) !important;
+}
+
+.active:hover {
+    color: white;
+    text-decoration: none;
+}
+
+.landingTab > li > a {
+    background-color: rgba(0.2, 0.2, 0.2, 0.2);
+    border-radius: 2px;
+    border: medium solid rgba(0.2, 0.2, 0.2, 0.8);
+    color: white;
+    text-decoration: none;
+}
+
+.nav-link:link {
+    text-decoration: none;
+}
+
+.nav-link:visited {
+    text-decoration: none;
+}
+
+.nav-link:hover {
+    text-decoration: underline;
+}
+
+.nav-link:active {
+    text-decoration: none;
+}

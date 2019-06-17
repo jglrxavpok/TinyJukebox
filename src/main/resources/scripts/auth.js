@@ -31,8 +31,14 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
          * @param callback
          */
         requestAuth(callback) {
-            auth.currentCallback = callback;
-            authModal.modal('show');
+            callback(auth.sessionID)
+        },
+
+        encrypt(txt) {
+            var encrypt = new jsencrypt.JSEncrypt();
+            encrypt.setPublicKey(auth.publicKey);
+
+            return encrypt.encrypt(txt);
         },
 
         /**
@@ -106,6 +112,7 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
             xhttp.open("POST", "/action/signup", true);
             xhttp.onload = function () {
                 var text = xhttp.responseText;
+                console.log(text);
                 if(text.indexOf('no') !== -1) {
                     alertContainer.html(alertContainer.html() +
                         `
@@ -157,9 +164,6 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
 
     var usernameInput = $('#authUsername');
     var passwordInput = $('#authPassword');
-    authModal.on('shown.bs.modal', function () {
-        usernameInput.trigger('focus')
-    });
     $('#authCheckButton').on('click', function(e) {
         auth.sendRequest(usernameInput.val(), passwordInput.val());
     });
@@ -184,20 +188,11 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
     signupPasswordConfirm.on('keyup', checkPasswordMatch);
 
     signupButton.on('click', function(e) {
-        var encrypt = new jsencrypt.JSEncrypt();
-        encrypt.setPublicKey(auth.publicKey);
-
-        const encodedPassword = encrypt.encrypt(signupPassword.val());
-        auth.signup(signupUsername.val(), encodedPassword);
+        auth.signup(signupUsername.val(), auth.encrypt(signupPassword.val()));
     });
 
     $("#mainLoginButton").on('click', function(e) {
-        auth.currentCallback = auth.login;
-        auth.sendRequest(usernameInput.val(), passwordInput.val());
-    });
-
-    $("#loginButton").on('click', function(e) {
-        auth.requestAuth(auth.login);
+        auth.login(usernameInput.val(), auth.encrypt(passwordInput.val()));
     });
 
     $("#logoutButton").on('click', function(e) {

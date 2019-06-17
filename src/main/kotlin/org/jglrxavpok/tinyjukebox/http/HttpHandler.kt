@@ -1,23 +1,20 @@
-package org.jglrxavpok.tinyjukebox
+package org.jglrxavpok.tinyjukebox.http
 
 import html.htmlErrorCodeToName
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jglrxavpok.tinyjukebox.*
 import org.jglrxavpok.tinyjukebox.auth.Session
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidSessionException
 import org.jglrxavpok.tinyjukebox.templating.*
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
-import java.io.PrintWriter
+import java.io.*
 import java.net.Socket
+import java.net.URLConnection
 import java.net.URLDecoder
 import java.nio.file.Paths
-import java.text.DecimalFormat
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.time.LocalTime
 import org.jglrxavpok.tinyjukebox.templating.Text as TemplatingText
@@ -48,7 +45,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
     private var session = Session.Anonymous
 
     override fun run() {
-        val request = reader.readLine()
+        val request = reader.readLine() ?: return htmlError(400)
         val parts = request.split(" ").dropLastWhile { it.isEmpty() }.toTypedArray()
         val type = parts[0]
         val location = parts[1]
@@ -100,7 +97,8 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
             val actionType = location.substring("/action/".length)
             if(WebActions.isValidAction(actionType)) {
                 htmlError(200)
-                WebActions.perform(writer, actionType, length, reader, client.getInputStream(), attributes, cookies, session)
+                val httpInfo = HttpInfo(writer, length, reader, client.getInputStream(), attributes, cookies, session)
+                WebActions.perform(httpInfo, actionType)
             } else {
                 htmlError(404)
             }
@@ -154,7 +152,8 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                 if(exists) {
                     val userModel = hashMapOf<String, Any>()
                     val favorites = transaction {
-                        TJDatabase.Favorites.select { TJDatabase.Favorites.user eq user }.orderBy(TJDatabase.Favorites.timesPlayed, SortOrder.DESC).take(3)
+                        TJDatabase.Favorites.select { TJDatabase.Favorites.user eq user }.orderBy(
+                            TJDatabase.Favorites.timesPlayed, SortOrder.DESC).take(3)
                     }
 
                     val none = NameFrequencyPair("NONE", 0)
@@ -188,7 +187,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                     val musicModel = hashMapOf<String, Any>()
                     val musicInfo = transaction { TJDatabase.Musics.select { TJDatabase.Musics.name eq music }.first() }
                     val duration = LocalTime.ofSecondOfDay(musicInfo[TJDatabase.Musics.length]/1000)
-                    musicModel["music"] = MusicModel(music, musicInfo[TJDatabase.Musics.timesPlayedTotal], duration.toString())
+                    musicModel["music"] = MusicModel(music, musicInfo[TJDatabase.Musics.timesPlayedTotal], musicInfo[TJDatabase.Musics.timesSkippedTotal], duration.toString())
                     serve("/musics/music.html", musicModel)
                 } else {
                     val model = hashMapOf<String, Any>()
@@ -225,7 +224,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
      */
     private fun serve(pageName: String, baseDataModel: Map<String, Any> = emptyMap()) {
         val resourceStream = javaClass.getResourceAsStream(pageName) ?: return htmlError(404)
-        htmlError(200, type=getMimeFromExtension(pageName))
+        htmlError(200, type=getMIME(pageName))
         if(pageName.endsWith(".png")) {
             client.getOutputStream().write(resourceStream.readBytes())
             client.getOutputStream().flush()
@@ -244,13 +243,27 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
         }
     }
 
-    private fun getMimeFromExtension(pageName: String): String {
+    private fun getMIME(pageName: String): String {
         val extension = pageName.substringAfterLast(".")
-        return when(extension) {
-            "css" -> "text/css"
-            "js" -> "text/javascript"
+        try {
+            return when(extension) {
+                "css" -> "text/css"
+                "js" -> "text/javascript"
+                "png" -> "image/png"
+                "html" -> "text/html"
 
-            else -> "text/html"
+                "eot" -> "application/vnd.ms-fontobject"
+                "woff" -> "application/font-woff"
+                "woff2" -> "application/font-woff2"
+                "ttf" -> "application/x-font-truetype"
+                "svg" -> "image/svg+xml"
+                "otf" -> "application/x-font-opentype"
+
+                else -> javaClass.getResource(pageName).openConnection().contentType
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return "text/html"
         }
     }
 

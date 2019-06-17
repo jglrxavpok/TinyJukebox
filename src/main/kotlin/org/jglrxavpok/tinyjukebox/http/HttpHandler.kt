@@ -4,6 +4,7 @@ import html.htmlErrorCodeToName
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jglrxavpok.tinyjukebox.*
 import org.jglrxavpok.tinyjukebox.auth.Session
@@ -143,6 +144,21 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                 return
             }
 
+            location == "/musics" || location == "/musics/" || location == "/music" || location == "/music/" -> {
+                val musics = transaction {
+                    TJDatabase.Musics.selectAll()
+                        .map { musicInfo ->
+                            val duration = LocalTime.ofSecondOfDay(musicInfo[TJDatabase.Musics.length]/1000)
+                            MusicModel(musicInfo[TJDatabase.Musics.name], musicInfo[TJDatabase.Musics.timesPlayedTotal],
+                                musicInfo[TJDatabase.Musics.timesSkippedTotal], duration.toString())
+                        }.toList()
+                }
+                val model = hashMapOf<String, Any>()
+                model["musics"] = musics
+                serve("/musics/musics.html", model)
+                return
+            }
+
             location.startsWith("/user/") -> {
                 val user = URLDecoder.decode(location.substring("/user/".length), "UTF-8")
                 println(">> $user")
@@ -164,7 +180,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                     val second = if(favorites.size < 2) none else NameFrequencyPair(favorites[1])
                     val third = if(favorites.size < 3) none else NameFrequencyPair(favorites[2])
 
-                    userModel.put("user", User(user, Favorites(first, second, third)))
+                    userModel["user"] = User(user, Favorites(first, second, third))
 
                     if(session.username == user) {
                         // TODO: show non-public info

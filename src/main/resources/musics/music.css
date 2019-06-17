@@ -9,3 +9,7 @@
     background: url("/images/landingBackground.png");
     background-size: 100%;
 }
+
+.musicTitle {
+    color: var(--niceWhite);
+}

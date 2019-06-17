@@ -256,23 +256,28 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
      * Sends a given page or sends a 404 error
      */
     private fun serve(pageName: String, baseDataModel: Map<String, Any> = emptyMap()) {
-        val resourceStream = javaClass.getResourceAsStream(pageName) ?: return htmlError(404)
-        htmlError(200, type=getMIME(pageName))
-        if(pageName.endsWith(".png")) {
-            client.getOutputStream().write(resourceStream.readBytes())
-            client.getOutputStream().flush()
-        } else if(pageName.endsWith(".html")) {
-            val dataModel = hashMapOf<String, Any>()
-            dataModel += baseDataModel
-            if(session != Session.Anonymous) {
-                dataModel["auth"] = Auth(session.username)
+        try {
+            val resourceStream = javaClass.getResourceAsStream(pageName) ?: return htmlError(404)
+            htmlError(200, type=getMIME(pageName))
+            if(pageName.endsWith(".png")) {
+                writer.flush()
+                client.getOutputStream().write(resourceStream.readBytes())
+                client.getOutputStream().flush()
+            } else if(pageName.endsWith(".html")) {
+                val dataModel = hashMapOf<String, Any>()
+                dataModel += baseDataModel
+                if(session != Session.Anonymous) {
+                    dataModel["auth"] = Auth(session.username)
+                }
+                dataModel["text"] = TemplatingText(Config[Text.title])
+                FreeMarker.processTemplate(pageName, dataModel, writer)
+                //writer.println(applyVariables(text)) // TODO
+            } else {
+                val text = resourceStream.reader().readText()
+                writer.println(applyVariables(text))
             }
-            dataModel["text"] = TemplatingText(Config[Text.title])
-            FreeMarker.processTemplate(pageName, dataModel, writer)
-            //writer.println(applyVariables(text)) // TODO
-        } else {
-            val text = resourceStream.reader().readText()
-            writer.println(applyVariables(text))
+        } catch (e: Exception) {
+            throw RuntimeException("Error while serving $pageName", e)
         }
     }
 

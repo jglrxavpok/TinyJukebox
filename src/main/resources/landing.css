@@ -29,7 +29,7 @@
 }
 
 .softLandingBackground {
-    color: white;
+    color: var(--niceWhite);
     background: rgba(0.2, 0.2, 0.2, 0.2);
     border-top-left-radius: 0px;
     border-top-right-radius: 0px;
@@ -43,7 +43,7 @@
 
 .tab-content {
     background-color: transparent;
-    color:white;
+    color:var(--niceWhite);
     padding:5px
 }
 
@@ -54,7 +54,7 @@
 }
 
 .title {
-    color: white;
+    color: var(--niceWhite);
 }
 
 .active {
@@ -64,7 +64,7 @@
     border: medium none transparent !important;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    color: white;
+    color: var(--niceWhite);
 }
 
 .nav-link.active {
@@ -72,7 +72,7 @@
 }
 
 .active:hover {
-    color: white;
+    color: var(--niceWhite);
     text-decoration: none;
 }
 
@@ -80,7 +80,7 @@
     background-color: rgba(0.2, 0.2, 0.2, 0.2);
     border-radius: 2px;
     border: medium solid rgba(0.2, 0.2, 0.2, 0.8);
-    color: white;
+    color: var(--niceWhite);
     text-decoration: none;
 }
 

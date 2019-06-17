@@ -37,7 +37,7 @@
 }
 
 .softLandingBackground {
-    color: white;
+    color: var(--niceWhite);
     background: rgba(0.2, 0.2, 0.2, 0.2);
     border-top-left-radius: 0px;
     border-top-right-radius: 0px;
@@ -45,5 +45,5 @@
 
 .usernameLink {
     text-decoration: none;
-    color: white;
+    color: var(--niceWhite);
 }

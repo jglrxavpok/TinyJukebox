@@ -1,0 +1,25 @@
+#miniQueue {
+    position: fixed;
+    right: 0;
+    --border-size: 2px;
+    color: white;
+    border: solid var(--border-size) white;
+    margin-right: calc(var(--border-size) * -1);
+    border-radius: 10px;
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+    overflow-y: hidden;
+    height: 50%;
+}
+
+#miniQueue:hover {
+    overflow-y: auto;
+}
+
+.pagebottom {
+    z-index: 0;
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}

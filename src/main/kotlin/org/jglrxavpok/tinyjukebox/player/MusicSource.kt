@@ -6,6 +6,9 @@ import java.io.InputStream
  * Represents a generic music source that can be played
  */
 interface MusicSource {
+
+    val location: String
+
     /**
      * Create a new audio stream for this source
      */

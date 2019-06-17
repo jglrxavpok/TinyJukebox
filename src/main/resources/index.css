@@ -1,3 +1,5 @@
+@import url("/tinyjukebox.css");
+
 .clickable {
     cursor: pointer;
 }
@@ -30,7 +32,7 @@
     right: 0;
     top: 0;
     bottom: 0;
-    background: url("images/landingBackground.png");
+    background: url("/images/landingBackground.png");
     background-size: 100%;
 }
 

@@ -1,5 +1,5 @@
-define(['jquery', 'bootstrap', 'playerControl', 'auth', 'quote', 'numeraljs'],
-function($, bootstrap, playerControl, auth, quote, numeral) {
+define(['jquery', 'bootstrap', 'playerControl', 'auth', 'quote', 'numeraljs', 'miniQueue'],
+function($, bootstrap, playerControl, auth, quote, numeral, miniQueue) {
     var playingContainer = $("#playingContainer");
     var queueContainer = $("#queueContainer");
     var alertContainer = $("#alertContainer");
@@ -23,6 +23,7 @@ function($, bootstrap, playerControl, auth, quote, numeral) {
                   </thead>
                   <tbody>`;
                 var totalTime = 0;
+                miniQueue.update(lines);
                 for (let i = 1; i < lines.length; i++) {
                     //queueHTML += "<tr><i>"+lines[i]+`</i> <a href='#' class='queueRemoval' data-name='${lines[i]}'>&times;</a></tr>`;
                     var musicObj = JSON.parse(lines[i]);

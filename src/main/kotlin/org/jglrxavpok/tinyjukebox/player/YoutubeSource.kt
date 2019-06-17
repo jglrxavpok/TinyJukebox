@@ -8,6 +8,9 @@ import java.nio.channels.Pipe
  * Represents music streamed from YouTube using youtube-dl
  */
 class YoutubeSource(val url: String): MusicSource {
+    override val location: String
+        get() = url
+
     private var duration: Long = -1
 
     /**

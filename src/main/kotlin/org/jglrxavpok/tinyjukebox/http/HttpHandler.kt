@@ -13,7 +13,6 @@ import org.jglrxavpok.tinyjukebox.templating.*
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
 import java.io.*
 import java.net.Socket
-import java.net.URLConnection
 import java.net.URLDecoder
 import java.nio.file.Paths
 import java.text.SimpleDateFormat
@@ -94,18 +93,36 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
             }
         }
 
-        if(location.startsWith("/action/")) {
-            val actionType = location.substring("/action/".length)
-            if(WebActions.isValidAction(actionType)) {
-                htmlError(200)
-                val httpInfo = HttpInfo(writer, length, reader, client.getInputStream(), attributes, cookies, session)
-                WebActions.perform(httpInfo, actionType)
-            } else {
-                htmlError(404)
+        when {
+            location.startsWith("/action/") -> {
+                val actionType = location.substring("/action/".length)
+                if (WebActions.isValidAction(actionType)) {
+                    htmlError(200)
+                    val httpInfo = HttpInfo(writer, length, reader, client.getInputStream(), attributes, cookies, session)
+                    WebActions.perform(httpInfo, actionType)
+                } else {
+                    htmlError(404)
+                }
             }
-        } else {
-            htmlError(404)
+
+            location.startsWith("/play/") -> {
+                val music = URLDecoder.decode(location.substring("/play/".length), "UTF-8")
+                val exists = transaction {
+                    checkMusicExists(music)
+                }
+                if(exists) {
+                    htmlError(200)
+                    val musicObj = TJDatabase.getSavedMusic(music)
+                    TJDatabase.onMusicUpload(session, musicObj)
+                    TinyJukebox.addToQueue(musicObj)
+                } else {
+                    htmlError(404)
+                }
+            }
+
+            else -> htmlError(404)
         }
+
     }
 
     /**
@@ -151,7 +168,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                             val duration = LocalTime.ofSecondOfDay(musicInfo[TJDatabase.Musics.length]/1000)
                             MusicModel(musicInfo[TJDatabase.Musics.name], musicInfo[TJDatabase.Musics.timesPlayedTotal],
                                 musicInfo[TJDatabase.Musics.timesSkippedTotal], duration.toString())
-                        }.toList()
+                        }.toList().sortedByDescending { it.timesPlayed }
                 }
                 val model = hashMapOf<String, Any>()
                 model["musics"] = musics

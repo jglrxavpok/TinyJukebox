@@ -8,8 +8,11 @@ import org.jglrxavpok.tinyjukebox.auth.AuthenticationException
 import org.jglrxavpok.tinyjukebox.auth.Session
 import org.jglrxavpok.tinyjukebox.auth.Permissions as UserPermissions
 import org.jglrxavpok.tinyjukebox.auth.UserAlreadyExistsException
+import org.jglrxavpok.tinyjukebox.player.FileSource
+import org.jglrxavpok.tinyjukebox.player.YoutubeSource
 import org.joda.time.DateTime
 import org.mindrot.jbcrypt.BCrypt
+import java.io.File
 import java.sql.Connection
 
 /**
@@ -50,6 +53,7 @@ object TJDatabase {
      //   val index = integer("index").uniqueIndex().autoIncrement()
         val name = varchar("name", 100).primaryKey()
         val musicSource = varchar("source", 100).primaryKey()
+        val location = varchar("location", 2083)
         val length = long("length")
         val timesPlayedTotal = integer("timesPlayed")
         val timesSkippedTotal = integer("timesSkipped")
@@ -185,6 +189,7 @@ object TJDatabase {
                     it[timesPlayedTotal] = 0
                     it[timesSkippedTotal] = 0
                     it[length] = music.duration
+                    it[location] = music.source.location
                     it[musicSource] = music.source.javaClass.simpleName
                 }
             }
@@ -221,6 +226,22 @@ object TJDatabase {
                     it.update(timesSkippedTotal, timesSkippedTotal + 1)
                 }
             }
+        }
+    }
+
+    fun getSavedMusic(music: String): Music {
+        return transaction {
+            val row = Musics.select { Musics.name eq music }.first()
+            val source = row[Musics.musicSource]
+            val location = row[Musics.location]
+            val musicSource = when(source) {
+                "YoutubeSource" -> YoutubeSource(location)
+                "FileSource" -> FileSource(File(location))
+                else -> {
+                    throw IllegalArgumentException(music)
+                }
+            }
+            Music(musicSource)
         }
     }
 }

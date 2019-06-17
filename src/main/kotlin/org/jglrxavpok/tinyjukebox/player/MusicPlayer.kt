@@ -15,6 +15,9 @@ import javax.sound.sampled.DataLine
 class State(var currentMusic: Music? = null, var format: AudioFormat? = null) {
     companion object {
         val nullSource = object: MusicSource {
+            override val location: String
+                get() = ""
+
             override fun createStream() = object: InputStream() {
                 override fun read() = -1
             }

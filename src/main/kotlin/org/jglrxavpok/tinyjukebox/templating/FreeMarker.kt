@@ -11,6 +11,7 @@ object FreeMarker {
 
     fun init() {
         cfg = Configuration(Configuration.VERSION_2_3_27)
+        cfg.outputEncoding = "UTF-8"
         cfg.defaultEncoding = "UTF-8"
         cfg.templateExceptionHandler = TemplateExceptionHandler.RETHROW_HANDLER
         cfg.logTemplateExceptions = false

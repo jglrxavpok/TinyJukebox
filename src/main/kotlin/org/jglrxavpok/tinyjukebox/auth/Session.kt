@@ -88,7 +88,6 @@ class Session(val id: UUID, val username: String, val expirementDate: Long) {
             with(httpInfo) {
                 try {
                     TJDatabase.newUser(username, passwordPlain, null)
-                    writer.println("yes")
                     login(httpInfo, username, passwordPlain)
                 } catch (e: UserAlreadyExistsException) {
                     e.printStackTrace()

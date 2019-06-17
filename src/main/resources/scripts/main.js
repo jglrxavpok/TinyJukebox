@@ -10,7 +10,7 @@ requirejs.config({
     paths: pathsObject
 });
 
-requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler', 'youtube-search/search', 'playerControl', 'auth'],
+requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler', 'youtube-search/search', 'playerControl', 'auth', 'reupload'],
 function   ($, bootstrap, quote, config, about, messageHandler, playerControl, auth) {
     $('.alert').alert();
 

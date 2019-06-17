@@ -10,6 +10,9 @@ import javax.sound.sampled.AudioSystem
  * A music source based on an uploaded file
  */
 class FileSource(val file: File): MusicSource {
+    override val location: String
+        get() = file.absolutePath
+
     override fun computeDurationInMillis(): Long {
         // extract duration information from the format
         val length = file.length()

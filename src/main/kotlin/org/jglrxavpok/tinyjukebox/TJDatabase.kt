@@ -6,6 +6,7 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jglrxavpok.tinyjukebox.auth.AuthenticationException
 import org.jglrxavpok.tinyjukebox.auth.Session
+import org.jglrxavpok.tinyjukebox.auth.Permissions as UserPermissions
 import org.jglrxavpok.tinyjukebox.auth.UserAlreadyExistsException
 import org.joda.time.DateTime
 import org.mindrot.jbcrypt.BCrypt
@@ -16,9 +17,7 @@ import java.sql.Connection
  */
 object TJDatabase {
 
-    private val PermissionList = listOf(
-        "lock", "remove", "move", "upload", "removeLocked", "modifyUser", "banUser"
-    )
+    private val PermissionList = UserPermissions.values().map(UserPermissions::name)
     /**
      * Database object
      */
@@ -92,6 +91,11 @@ object TJDatabase {
                 it[hashedPassword] = BCrypt.hashpw(password, gensalt)
                 it[avatarURL] = userAvatarURL
                 it[timeCreated] = DateTime.now()
+            }
+
+            Permissions.insert {
+                it[user] = username
+                it[permission] = UserPermissions.Upload.name
             }
         }
     }
@@ -168,7 +172,7 @@ object TJDatabase {
         transaction {
             addLogger(StdOutSqlLogger)
 
-            SchemaUtils.createMissingTablesAndColumns(Users, Admins, Musics, Favorites)
+            SchemaUtils.createMissingTablesAndColumns(Users, Admins, Musics, Favorites, Permissions)
         }
     }
 
@@ -200,6 +204,12 @@ object TJDatabase {
                     it.update(timesPlayed, timesPlayed +1)
                 }
             }
+        }
+    }
+
+    fun getPermissions(username: String): List<UserPermissions> {
+        return transaction {
+            Permissions.select { Permissions.user eq username }.adjustSlice { Permissions.slice(Permissions.permission) }.map { UserPermissions.valueOf(it[Permissions.permission]) }
         }
     }
 }

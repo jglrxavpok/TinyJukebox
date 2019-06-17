@@ -1,8 +1,8 @@
 var pathsObject = {
-    jquery: 'https://code.jquery.com/jquery-3.3.1.min', // TODO: add option to use a local version? (in case TinyJukebox is only on a local network)
-    bootstrap: 'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min',
-    numeraljs: 'https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min',
-    jsencrypt: 'jsencrypt.min',
+    jquery: '/jslib/jquery-3.3.1.min', // TODO: add option to use a local version? (in case TinyJukebox is only on a local network)
+    bootstrap: '/jslib/bootstrap.bundle.min',
+    numeraljs: '/jslib/numeral.min',
+    jsencrypt: '/jslib/jsencrypt.min',
 };
 requirejs.config({
     //By default load any module IDs from scripts/

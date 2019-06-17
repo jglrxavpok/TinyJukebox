@@ -3,6 +3,7 @@ package org.jglrxavpok.tinyjukebox
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import org.jglrxavpok.tinyjukebox.auth.AuthChecker
+import org.jglrxavpok.tinyjukebox.auth.Permissions
 import org.jglrxavpok.tinyjukebox.auth.Session
 import org.jglrxavpok.tinyjukebox.auth.Session.Companion.login
 import org.jglrxavpok.tinyjukebox.player.FileSource
@@ -32,22 +33,27 @@ object WebActions {
     /**
      * An action
      */
-    open class Action(val id: String, val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>, Map<String, String>/*cookies*/, Session) -> Unit)
+    open class Action(val id: String,
+                      val action: (PrintWriter, Long, BufferedReader, InputStream, Map<String, String>, Map<String, String>/*cookies*/, Session) -> Unit,
+                      vararg _requiredPermissions: Permissions
+                      ) {
+        val requiredPermissions = arrayListOf(*_requiredPermissions)
+    }
 
     /**
      * List of all actions supported by TinyJukebox
      */
     val actionList = listOf(
-        Action("upload", this::upload), // upload a local or a youtube link
-        Action("ytsearch", this::ytsearch), // search a video on YT
+        Action("upload", this::upload, Permissions.Upload), // upload a local or a youtube link
+        Action("ytsearch", this::ytsearch, Permissions.Upload), // search a video on YT
         Action("auth", AuthChecker.checkAuth(null)), // check authenfication
-        Action("playercontrol/empty", AuthChecker.checkAuth { writer, reader, username, passwordHash -> TinyJukebox.emptyQueue()}), // empty the current queue, requires authentification
-        Action("playercontrol/skip", AuthChecker.checkAuth { writer, reader, username, passwordHash -> MusicPlayer.skip()}), // skips the current track, requires authentification
-        Action("playercontrol/remove", AuthChecker.checkAuth(this::removeFromQueue)), // remove the selected track, requires authentification
-        Action("playercontrol/movetostart", AuthChecker.checkAuth(this::moveToStart)), // move the selected track at the head of the queue
-        Action("playercontrol/movetoend", AuthChecker.checkAuth(this::moveToEnd)), // move the selected track at the bottom the queue
-        Action("playercontrol/moveup", AuthChecker.checkAuth(this::moveUp)), // move the selected track up the queue
-        Action("playercontrol/movedown", AuthChecker.checkAuth(this::moveDown)), // move the selected track up the queue
+        Action("playercontrol/empty", AuthChecker.checkAuth { writer, reader, username, passwordHash -> TinyJukebox.emptyQueue()}, Permissions.EmptyQueue), // empty the current queue, requires authentification
+        Action("playercontrol/skip", AuthChecker.checkAuth { writer, reader, username, passwordHash -> MusicPlayer.skip()}, Permissions.Skip), // skips the current track, requires authentification
+        Action("playercontrol/remove", AuthChecker.checkAuth(this::removeFromQueue), Permissions.Remove), // remove the selected track, requires authentification
+        Action("playercontrol/movetostart", AuthChecker.checkAuth(this::moveToStart), Permissions.Move), // move the selected track at the head of the queue
+        Action("playercontrol/movetoend", AuthChecker.checkAuth(this::moveToEnd), Permissions.Move), // move the selected track at the bottom the queue
+        Action("playercontrol/moveup", AuthChecker.checkAuth(this::moveUp), Permissions.Move), // move the selected track up the queue
+        Action("playercontrol/movedown", AuthChecker.checkAuth(this::moveDown), Permissions.Move), // move the selected track up the queue
 
         Action("login", AuthChecker.checkAuth(Session.Companion::login)), // move the selected track up the queue
         Action("signup", Session.Companion::signup), // move the selected track up the queue
@@ -228,7 +234,9 @@ object WebActions {
         session: Session
     ) {
         try {
-            actionList.first { it.id.toLowerCase() == actionType.toLowerCase()}.action(writer, length, reader, clientInput, attributes, cookies, session)
+            val action = actionList.first { it.id.toLowerCase() == actionType.toLowerCase()}
+            session.checkPermissions(action.requiredPermissions)
+            action.action(writer, length, reader, clientInput, attributes, cookies, session)
         } catch (e: Exception) {
             TinyJukebox.sendError(IllegalArgumentException("Failed to perform action: $e"))
             e.printStackTrace()

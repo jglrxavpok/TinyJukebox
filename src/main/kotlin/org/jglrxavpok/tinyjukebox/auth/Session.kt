@@ -5,6 +5,7 @@ import org.jglrxavpok.tinyjukebox.TJDatabase
 import org.jglrxavpok.tinyjukebox.Timings
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidCredentialsException
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidSessionException
+import org.jglrxavpok.tinyjukebox.exceptions.UserNotPermittedException
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.PrintWriter
@@ -91,6 +92,16 @@ class Session(val id: UUID, val username: String, val expirementDate: Long) {
 
     private fun isExpired(): Boolean {
         return System.currentTimeMillis() >= expirementDate
+    }
+
+    fun checkPermissions(permissions: List<Permissions>) {
+        val userPermissions = TJDatabase.getPermissions(username)
+        if( ! userPermissions.containsAll(permissions)) {
+            val diff = arrayListOf<Permissions>()
+            diff += permissions
+            diff -= userPermissions
+            throw UserNotPermittedException(diff)
+        }
     }
 
 }

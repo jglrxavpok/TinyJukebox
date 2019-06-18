@@ -1,6 +1,5 @@
 package org.jglrxavpok.tinyjukebox.player
 
-import org.jglrxavpok.tinyjukebox.Music
 import org.jglrxavpok.tinyjukebox.TinyJukebox
 import java.io.BufferedInputStream
 import java.io.InputStream

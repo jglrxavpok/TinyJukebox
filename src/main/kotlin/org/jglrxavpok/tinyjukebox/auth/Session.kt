@@ -1,15 +1,12 @@
 package org.jglrxavpok.tinyjukebox.auth
 
 import org.jglrxavpok.tinyjukebox.Config
-import org.jglrxavpok.tinyjukebox.TJDatabase
+import org.jglrxavpok.tinyjukebox.templating.TJDatabase
 import org.jglrxavpok.tinyjukebox.Timings
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidCredentialsException
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidSessionException
 import org.jglrxavpok.tinyjukebox.exceptions.UserNotPermittedException
 import org.jglrxavpok.tinyjukebox.http.HttpInfo
-import java.io.BufferedReader
-import java.io.InputStream
-import java.io.PrintWriter
 import java.util.*
 
 class Session(val id: UUID, val username: String, val expirementDate: Long) {

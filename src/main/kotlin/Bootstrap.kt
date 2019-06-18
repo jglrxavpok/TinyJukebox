@@ -5,6 +5,7 @@ import org.jglrxavpok.tinyjukebox.auth.RSALoadKeyOrCreate
 import org.jglrxavpok.tinyjukebox.http.HttpHandler
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.templating.FreeMarker
+import org.jglrxavpok.tinyjukebox.templating.TJDatabase
 import org.jglrxavpok.tinyjukebox.websocket.JukeboxWebsocketServer
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
 import java.io.FileOutputStream
@@ -14,7 +15,6 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import javax.net.ssl.SSLServerSocket
 import javax.net.ssl.SSLServerSocketFactory
-import kotlin.concurrent.thread
 
 /**
  * TinyJukebox entry point

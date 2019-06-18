@@ -1,12 +1,10 @@
 package org.jglrxavpok.tinyjukebox.auth
 
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jglrxavpok.tinyjukebox.TJDatabase
-import org.jglrxavpok.tinyjukebox.auth
+import org.jglrxavpok.tinyjukebox.templating.auth
 import org.jglrxavpok.tinyjukebox.http.HttpInfo
 import java.io.BufferedReader
 import java.io.File
-import java.io.InputStream
 import java.io.PrintWriter
 
 /**

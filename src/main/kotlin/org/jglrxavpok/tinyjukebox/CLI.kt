@@ -1,6 +1,6 @@
 package org.jglrxavpok.tinyjukebox
 
-import org.jglrxavpok.tinyjukebox.auth.AuthChecker
+import org.jglrxavpok.tinyjukebox.templating.TJDatabase
 import java.lang.IllegalArgumentException
 import java.util.*
 import javax.swing.JOptionPane

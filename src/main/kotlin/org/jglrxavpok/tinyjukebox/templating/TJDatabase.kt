@@ -1,9 +1,12 @@
-package org.jglrxavpok.tinyjukebox
+package org.jglrxavpok.tinyjukebox.templating
 
 import org.jetbrains.exposed.dao.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jglrxavpok.tinyjukebox.Config
+import org.jglrxavpok.tinyjukebox.DatabaseConfig
+import org.jglrxavpok.tinyjukebox.player.Music
 import org.jglrxavpok.tinyjukebox.auth.AuthenticationException
 import org.jglrxavpok.tinyjukebox.auth.Session
 import org.jglrxavpok.tinyjukebox.auth.Permissions as UserPermissions
@@ -53,21 +56,21 @@ object TJDatabase {
      //   val index = integer("index").uniqueIndex().autoIncrement()
         val name = varchar("name", 100).primaryKey()
         val musicSource = varchar("source", 100).primaryKey()
-        val location = varchar("location", 2083)
-        val length = long("length")
-        val timesPlayedTotal = integer("timesPlayed")
-        val timesSkippedTotal = integer("timesSkipped")
+        val location = varchar("location", 2083).default("")
+        val length = long("length").default(0)
+        val timesPlayedTotal = integer("timesPlayed").default(0)
+        val timesSkippedTotal = integer("timesSkipped").default(0)
     }
 
     object Favorites: IntIdTable() {
      //   val index = integer("index").uniqueIndex().autoIncrement()
-        val user = varchar("user", 100).primaryKey() references Users.name
-        val music = varchar("music", 100).primaryKey() references Musics.name
-        val timesPlayed = integer("timesPlayed")
+        val user = varchar("user", 100).primaryKey() references TJDatabase.Users.name
+        val music = varchar("music", 100).primaryKey() references TJDatabase.Musics.name
+        val timesPlayed = integer("timesPlayed").default(0)
     }
 
     object Permissions: Table() {
-        val user = varchar("user", 100).primaryKey() references Users.name
+        val user = varchar("user", 100).primaryKey() references TJDatabase.Users.name
         val permission = varchar("permission", 100).primaryKey()
 
         init {
@@ -89,7 +92,7 @@ object TJDatabase {
                 throw UserAlreadyExistsException(username)
             }
 
-            Users.insert {
+            TJDatabase.Users.insert {
                 it[name] = username
                 val gensalt= BCrypt.gensalt()
                 it[salt] = gensalt
@@ -98,7 +101,7 @@ object TJDatabase {
                 it[timeCreated] = DateTime.now()
             }
 
-            Permissions.insert {
+            TJDatabase.Permissions.insert {
                 it[user] = username
                 it[permission] = UserPermissions.Upload.name
             }
@@ -113,7 +116,7 @@ object TJDatabase {
                 throw IllegalArgumentException("User $username does not exists")
             }
 
-            Admins.insert {
+            TJDatabase.Admins.insert {
                 it[name] = username
             }
         }
@@ -137,7 +140,7 @@ object TJDatabase {
                 throw IllegalArgumentException("User $adminName does not exists")
             }
 
-            Admins.insert {
+            TJDatabase.Admins.insert {
                 it[name] = adminName
             }
         }
@@ -161,8 +164,8 @@ object TJDatabase {
                 throw IllegalArgumentException("User $adminName does not exists")
             }
 
-            Admins.deleteWhere {
-                Admins.name eq adminName
+            TJDatabase.Admins.deleteWhere {
+                TJDatabase.Admins.name eq adminName
             }
         }
     }
@@ -177,14 +180,20 @@ object TJDatabase {
         transaction {
             addLogger(StdOutSqlLogger)
 
-            SchemaUtils.createMissingTablesAndColumns(Users, Admins, Musics, Favorites, Permissions)
+            SchemaUtils.createMissingTablesAndColumns(
+                Users,
+                Admins,
+                Musics,
+                Favorites,
+                Permissions
+            )
         }
     }
 
     fun onMusicUpload(session: Session, music: Music) {
         transaction {
-            if(Musics.select { Musics.name eq music.name }.empty()) {
-                Musics.insertIgnore {
+            if(TJDatabase.Musics.select { TJDatabase.Musics.name eq music.name }.empty()) {
+                TJDatabase.Musics.insertIgnore {
                     it[name] = music.name
                     it[timesPlayedTotal] = 0
                     it[timesSkippedTotal] = 0
@@ -193,19 +202,19 @@ object TJDatabase {
                     it[musicSource] = music.source.javaClass.simpleName
                 }
             }
-            Musics.update({ Musics.name eq music.name }) {
+            TJDatabase.Musics.update({ TJDatabase.Musics.name eq music.name }) {
                 with(SqlExpressionBuilder) {
-                    it.update(timesPlayedTotal, timesPlayedTotal+1)
+                    it.update(timesPlayedTotal, timesPlayedTotal +1)
                 }
             }
-            if(Favorites.select { (Favorites.music eq music.name) and (Favorites.user eq session.username) }.empty()) {
-                Favorites.insertIgnore {
+            if(TJDatabase.Favorites.select { (TJDatabase.Favorites.music eq music.name) and (TJDatabase.Favorites.user eq session.username) }.empty()) {
+                TJDatabase.Favorites.insertIgnore {
                     it[user] = session.username
-                    it[Favorites.music] = music.name
+                    it[TJDatabase.Favorites.music] = music.name
                     it[timesPlayed] = 0
                 }
             }
-            Favorites.update({ (Favorites.music eq music.name) and (Favorites.user eq session.username) }) {
+            TJDatabase.Favorites.update({ (TJDatabase.Favorites.music eq music.name) and (TJDatabase.Favorites.user eq session.username) }) {
                 with(SqlExpressionBuilder) {
                     it.update(timesPlayed, timesPlayed +1)
                 }
@@ -215,13 +224,15 @@ object TJDatabase {
 
     fun getPermissions(username: String): List<UserPermissions> {
         return transaction {
-            Permissions.select { Permissions.user eq username }.adjustSlice { Permissions.slice(Permissions.permission) }.map { UserPermissions.valueOf(it[Permissions.permission]) }
+            TJDatabase.Permissions.select { TJDatabase.Permissions.user eq username }.adjustSlice { TJDatabase.Permissions.slice(
+                TJDatabase.Permissions.permission
+            ) }.map { UserPermissions.valueOf(it[TJDatabase.Permissions.permission]) }
         }
     }
 
     fun onMusicSkip(name: String): Unit {
         transaction {
-            Musics.update({ Musics.name eq name }) {
+            TJDatabase.Musics.update({ TJDatabase.Musics.name eq name }) {
                 with(SqlExpressionBuilder) {
                     it.update(timesSkippedTotal, timesSkippedTotal + 1)
                 }
@@ -231,9 +242,9 @@ object TJDatabase {
 
     fun getSavedMusic(music: String): Music {
         return transaction {
-            val row = Musics.select { Musics.name eq music }.first()
-            val source = row[Musics.musicSource]
-            val location = row[Musics.location]
+            val row = TJDatabase.Musics.select { TJDatabase.Musics.name eq music }.first()
+            val source = row[TJDatabase.Musics.musicSource]
+            val location = row[TJDatabase.Musics.location]
             val musicSource = when(source) {
                 "YoutubeSource" -> YoutubeSource(location)
                 "FileSource" -> FileSource(File(location))

@@ -15,7 +15,6 @@ import java.io.*
 import java.net.Socket
 import java.net.URLDecoder
 import java.nio.file.Paths
-import java.text.SimpleDateFormat
 import java.time.LocalTime
 import org.jglrxavpok.tinyjukebox.templating.Text as TemplatingText
 
@@ -29,8 +28,6 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
          * Name of the cookie holding the user's session id (when it exists)
          */
         const val SessionIdCookie = "SessionId"
-
-        val TimeFormat = SimpleDateFormat("HH:mm:ss")
     }
 
     /**
@@ -139,8 +136,6 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                     val name = cookieInfo[0]
                     val value = cookieInfo[1]
                     cookies[name] = value
-
-                    println(">>> $name = $value")
                 }
             }
         } while( ! line.isBlank())
@@ -178,7 +173,6 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
 
             location.startsWith("/user/") -> {
                 val user = URLDecoder.decode(location.substring("/user/".length), "UTF-8")
-                println(">> $user")
                 val exists = transaction {
                     checkUserExists(user)
                 }
@@ -271,7 +265,6 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                 }
                 dataModel["text"] = TemplatingText(Config[Text.title])
                 FreeMarker.processTemplate(pageName, dataModel, writer)
-                //writer.println(applyVariables(text)) // TODO
             } else {
                 val text = resourceStream.reader().readText()
                 writer.println(applyVariables(text))
@@ -306,16 +299,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
     }
 
     private fun applyVariables(text: String): String {
-        return text.replace(Regex("___Template (?<VAR>.*?),(?<COND>.*?) Template___")) { result ->
-            val varName = result.groups["VAR"]
-            val condition = result.groups["COND"]
-            if(varName != null && condition != null) {
-                val value = evaluateCondition(condition.value)
-                javaClass.getResourceAsStream("/${varName.value}_$value.html")?.bufferedReader()?.readText() ?: "NotFound(${varName.value})"
-            } else {
-                result.toString()
-            }
-        }.replace(Regex("___(?<VAR>.*?)___")) { result ->
+        return text.replace(Regex("___(?<VAR>.*?)___")) { result ->
             val varName = result.groups["VAR"]
             if(varName != null) {
                 evaluateVariable(varName.value) ?: Config.getFromProperties(varName.value)
@@ -330,18 +314,6 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
         else -> null
     }
 
-    private fun evaluateCondition(condition: String): String = when(condition) {
-        "logged in" -> {
-            if(SessionIdCookie in cookies && Session.exists(cookies[SessionIdCookie]!!)) {
-                "logged_in"
-            } else {
-                "not_logged_in"
-            }
-        }
-
-        else -> condition // echo the condition
-    }
-
     /**
      * Writes a HTTP header corresponding to the given error code with the given parameters
      */
@@ -353,6 +325,5 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
         }
         writer.println("")
     }
-
 
 }

@@ -1,15 +1,16 @@
-package org.jglrxavpok.tinyjukebox
+package org.jglrxavpok.tinyjukebox.http
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import org.jglrxavpok.tinyjukebox.player.Music
+import org.jglrxavpok.tinyjukebox.TinyJukebox
 import org.jglrxavpok.tinyjukebox.auth.AuthChecker
 import org.jglrxavpok.tinyjukebox.auth.Permissions
 import org.jglrxavpok.tinyjukebox.auth.Session
-import org.jglrxavpok.tinyjukebox.auth.Session.Companion.login
-import org.jglrxavpok.tinyjukebox.http.HttpInfo
 import org.jglrxavpok.tinyjukebox.player.FileSource
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.player.YoutubeSource
+import org.jglrxavpok.tinyjukebox.templating.TJDatabase
 import java.io.*
 import java.net.URL
 import java.net.URLDecoder
@@ -17,7 +18,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.*
 import java.util.regex.Pattern
-import kotlin.collections.HashMap
 
 /**
  * Object responsible to act when "/action/<some location>" is requested via a POST request
@@ -48,17 +48,32 @@ object WebActions {
         Action("upload", this::upload, Permissions.Upload), // upload a local or a youtube link
         Action("ytsearch", this::ytsearch, Permissions.Upload), // search a video on YT
         Action("auth", AuthChecker.checkAuth(null)), // check authenfication
-        Action("playercontrol/empty", TinyJukebox::emptyQueue, Permissions.EmptyQueue), // empty the current queue, requires authentification
+        Action(
+            "playercontrol/empty",
+            TinyJukebox::emptyQueue,
+            Permissions.EmptyQueue
+        ), // empty the current queue, requires authentification
         Action("playercontrol/skip", this::skip, Permissions.Skip), // skips the current track, requires authentification
-        Action("playercontrol/remove", this::removeFromQueue, Permissions.Remove), // remove the selected track, requires authentification
-        Action("playercontrol/movetostart", this::moveToStart, Permissions.Move), // move the selected track at the head of the queue
+        Action(
+            "playercontrol/remove",
+            this::removeFromQueue,
+            Permissions.Remove
+        ), // remove the selected track, requires authentification
+        Action(
+            "playercontrol/movetostart",
+            this::moveToStart,
+            Permissions.Move
+        ), // move the selected track at the head of the queue
         Action("playercontrol/movetoend", this::moveToEnd, Permissions.Move), // move the selected track at the bottom the queue
         Action("playercontrol/moveup", this::moveUp, Permissions.Move), // move the selected track up the queue
         Action("playercontrol/movedown", this::moveDown, Permissions.Move), // move the selected track up the queue
 
         Action("login", Session.Companion::login), // move the selected track up the queue
         Action("signup", Session.Companion::signup), // move the selected track up the queue
-        Action("logout", Session.Companion::logout) // move the selected track up the queue
+        Action(
+            "logout",
+            Session.Companion::logout
+        ) // move the selected track up the queue
     )
 
     private fun skip(httpInfo: HttpInfo) {
@@ -232,7 +247,11 @@ object WebActions {
         target.close()
 
         val source = FileSource(file)
-        return Music(file.nameWithoutExtension, source, source.computeDurationInMillis())
+        return Music(
+            file.nameWithoutExtension,
+            source,
+            source.computeDurationInMillis()
+        )
     }
 
     private fun uploadYoutube(clientReader: BufferedReader, attributes: Map<String, String>): Music? {

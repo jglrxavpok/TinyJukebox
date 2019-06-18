@@ -1,4 +1,4 @@
-package org.jglrxavpok.tinyjukebox
+package org.jglrxavpok.tinyjukebox.player
 
 import org.jglrxavpok.tinyjukebox.player.MusicSource
 

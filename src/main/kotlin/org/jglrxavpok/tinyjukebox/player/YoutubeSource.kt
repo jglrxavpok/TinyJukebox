@@ -48,6 +48,10 @@ class YoutubeSource(val url: String): MusicSource {
         val ytdl = process.command("youtube-dl", "-o", "-", url)
 
         val tmp = File("./music/yt/tmp.txt")
+        if(!tmp.parentFile.exists()) {
+            tmp.parentFile.mkdirs()
+        }
+        tmp.createNewFile()
         ytdl.redirectError(tmp)
 
         val ffmpeg = ProcessBuilder().command("ffmpeg", "-i", "-", "-f", "mp3", "-vn", "-")

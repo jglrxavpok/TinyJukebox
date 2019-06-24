@@ -8,7 +8,9 @@ enum class Permissions {
     Remove,
     RemoveLocked,
     Move,
+    MoveLocked,
     Skip,
     Ban,
-    ChangeAdmins
+    ChangeAdmins,
+    ChangeVolume
 }

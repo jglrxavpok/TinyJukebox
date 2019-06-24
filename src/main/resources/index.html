@@ -45,9 +45,11 @@
         <div class="playingContainer" id="playingContainer">
             <!-- The playingContainer will be filled by JS code here !-->
         </div>
+        <#if auth.permissions?seq_contains("Skip")>
         <div class="text-center">
             <button class="btn btn-danger btn-lg" role="button" id="skipButton">Skip !</button>
         </div>
+        </#if>
         <br/>
         Here's the current queue:
         <br/>

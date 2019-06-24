@@ -60,11 +60,13 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
     private fun buildQueueMessage(): String {
         val queue = TinyJukebox.createCopyOfQueue()
         val message = StringBuilder("queue")
-        for(music in queue) {
+        for(musicEntry in queue) {
+            val music = musicEntry.music
             message.append("\n")
             val jsonObj = JsonObject()
             jsonObj.addProperty("title", music.name)
             jsonObj.addProperty("duration", music.duration)
+            jsonObj.addProperty("locked", musicEntry.locked)
             message.append(jsonObj.toString())
         }
         return message.toString()
@@ -93,7 +95,7 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
                 }
 
                 else -> {
-                    println("Unknown Websocket message ${message}")
+                    println("Unknown Websocket message $message")
                 }
             }
         }

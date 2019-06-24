@@ -68,9 +68,10 @@ object MusicPlayer: Thread("Music Player") {
 
     override fun run() {
         while(!Thread.currentThread().isInterrupted) {
-            val music = TinyJukebox.pollQueue()
+            val musicEntry = TinyJukebox.pollQueue()
             try {
-                if(music != null) {
+                if(musicEntry != null) {
+                    val music = musicEntry.music
                     state.setLoadingState()
                     updateClients(force = true)
                     val unbufferedStream = music.source.createStream()

@@ -224,13 +224,11 @@ object TJDatabase {
 
     fun getPermissions(username: String): List<UserPermissions> {
         return transaction {
-            TJDatabase.Permissions.select { TJDatabase.Permissions.user eq username }.adjustSlice { TJDatabase.Permissions.slice(
-                TJDatabase.Permissions.permission
-            ) }.map { UserPermissions.valueOf(it[TJDatabase.Permissions.permission]) }
+            TJDatabase.Permissions.select { TJDatabase.Permissions.user eq username }.map { UserPermissions.valueOf(it[TJDatabase.Permissions.permission]) }
         }
     }
 
-    fun onMusicSkip(name: String): Unit {
+    fun onMusicSkip(name: String) {
         transaction {
             TJDatabase.Musics.update({ TJDatabase.Musics.name eq name }) {
                 with(SqlExpressionBuilder) {

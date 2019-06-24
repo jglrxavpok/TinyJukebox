@@ -80,6 +80,14 @@ define(['jquery', 'auth'], function($, auth) {
             }
         },
 
+        sendUnlockRequestSupplier: function(name, index) {
+            return playerControl.sendMusicControlRequestSupplier(name, index, "unlock")
+        },
+
+        sendLockRequestSupplier: function(name, index) {
+            return playerControl.sendMusicControlRequestSupplier(name, index, "lock")
+        },
+
         sendRemoveRequestSupplier: function(name, index) {
             return playerControl.sendMusicControlRequestSupplier(name, index, "remove")
         },

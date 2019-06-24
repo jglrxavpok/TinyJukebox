@@ -66,6 +66,8 @@ class Session(val id: UUID, val username: String, val expirementDate: Long) {
                     val session = Session.open(username, passwordPlain)
                     writer.println("yes")
                     writer.println(session.id.toString())
+                    writer.println(session.username)
+                    writer.println(TJDatabase.getPermissions(session.username).joinToString(",") { it.name })
                 } catch (e: InvalidCredentialsException) {
                     e.printStackTrace()
                     writer.println("no")

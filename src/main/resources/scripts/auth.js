@@ -18,13 +18,25 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
     var authModal = $('#authModal');
     var alertContainer = $("#alertContainer");
     var auth = {
-
-
         currentCallback: undefined,
         publicKey: undefined,
-        username: undefined,
 
         sessionID: getCookie("SessionId"),
+        username: getCookie("Username"),
+        permissions: getCookie("Permissions"),
+
+        handleSessionInfo(lines) {
+            document.cookie = "SessionId="+lines[1]+";"; // TODO: expiration
+            document.cookie = "Username="+lines[2]+";"; // TODO: expiration
+            document.cookie = "Permissions="+lines[3]+";"; // TODO: expiration
+            auth.sessionID = lines[1];
+            auth.username = lines[2];
+            auth.permissions = lines[3];
+        },
+
+        hasPermission(permission) {
+            return auth.permissions.split(',').includes(permission);
+        },
 
         /**
          * Opens the auth modal and calls the given callback if the auth passed
@@ -97,9 +109,7 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
                     );
                 } else {
                     var lines = text.split("\n"); // first line is 'yes' to confirm auth
-                    document.cookie = "SessionId="+lines[1]+";"; // TODO: expiration
-                    auth.username = username;
-                    auth.sessionID = lines[1];
+                    auth.handleSessionInfo(lines);
                     location.reload(true);
                 }
             };
@@ -126,9 +136,7 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
                     );
                 } else {
                     var lines = text.split("\n"); // first line is 'yes' to confirm auth
-                    document.cookie = "SessionId="+lines[1]+";"; // TODO: expiration
-                    auth.username = username;
-                    auth.sessionID = lines[1];
+                    auth.handleSessionInfo(lines);
                     location.reload(true);
                 }
             };
@@ -154,6 +162,8 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
                     );
                 } else {
                     document.cookie = "SessionId=00000000-0000-0000-0000-000000000000; expires=Thu, 01 Jan 1970 00:00:01 GMT;"; // delete cookie
+                    document.cookie = "Username=undefined; expires=Thu, 01 Jan 1970 00:00:01 GMT;"; // delete cookie
+                    document.cookie = "Permissions=NONE; expires=Thu, 01 Jan 1970 00:00:01 GMT;"; // delete cookie
                     location.reload(true);
                 }
             };
@@ -169,7 +179,7 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
     });
     passwordInput.on('keyup', function(e) {
         if (e.which === 13) {
-            auth.sendRequest(usernameInput.val(), passwordInput.val());
+            auth.login(usernameInput.val(), auth.encrypt(passwordInput.val()));
         }
     });
 

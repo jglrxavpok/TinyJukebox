@@ -71,8 +71,10 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                 attributes[parts[0]] = parts[1]
 
                 if(parts[0] == "Cookie") {
-                    val cookieInfo = parts[1].split("=")
-                    cookies[cookieInfo[0]] = cookieInfo[1]
+                    for(cookie in parts[1].split("; ")) {
+                        val cookieInfo = cookie.split("=")
+                        cookies[cookieInfo[0]] = cookieInfo[1]
+                    }
                 }
             }
             if(line.startsWith("File-Size: ")) {
@@ -261,7 +263,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                 val dataModel = hashMapOf<String, Any>()
                 dataModel += baseDataModel
                 if(session != Session.Anonymous) {
-                    dataModel["auth"] = Auth(session.username)
+                    dataModel["auth"] = Auth(session.username, TJDatabase.getPermissions(session.username))
                 }
                 dataModel["text"] = TemplatingText(Config[Text.title])
                 FreeMarker.processTemplate(pageName, dataModel, writer)

@@ -2,6 +2,7 @@ package org.jglrxavpok.tinyjukebox
 
 import org.jglrxavpok.tinyjukebox.http.HttpInfo
 import org.jglrxavpok.tinyjukebox.player.Music
+import org.jglrxavpok.tinyjukebox.player.MusicEntry
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.websocket.JukeboxWebsocketServer
 import java.lang.Exception
@@ -17,7 +18,7 @@ import kotlin.concurrent.write
 object TinyJukebox {
 
     private lateinit var websocket: JukeboxWebsocketServer
-    private val queue: MutableList<Music> = mutableListOf()
+    private val queue: MutableList<MusicEntry> = mutableListOf()
     private val queueLocks = ReentrantReadWriteLock(true)
 
     // previous state of the music player, used by sendPlayerUpdateIfNecessary
@@ -30,17 +31,17 @@ object TinyJukebox {
      */
     fun addToQueue(music: Music) {
         performChangesToQueue {
-            add(music)
+            add(MusicEntry(music, false))
             sendQueueUpdate()
         }
     }
 
     /**
-     * Removes a music to the queue and send a update to clients
+     * Removes a non-locked music to the queue and send a update to clients
      */
     fun removeFromQueue(music: Music) {
         performChangesToQueue {
-            removeIf { it == music }
+            removeIf { !it.locked && it.music == music }
             sendQueueUpdate()
         }
     }
@@ -66,7 +67,7 @@ object TinyJukebox {
     /**
      * Modifies the queue with the given action. Takes care of synchronisation
      */
-    fun <T> performChangesToQueue(action: MutableList<Music>.() -> T): T {
+    fun <T> performChangesToQueue(action: MutableList<MusicEntry>.() -> T): T {
         return queueLocks.write {
             queue.action()
         }
@@ -75,7 +76,7 @@ object TinyJukebox {
     /**
      * Creates a fresh copy of the current queue (with synchronisation)
      */
-    fun createCopyOfQueue(): MutableList<Music> {
+    fun createCopyOfQueue(): MutableList<MusicEntry> {
         return queueLocks.read { queue.stream().collect(Collectors.toList()) }
     }
 
@@ -83,7 +84,7 @@ object TinyJukebox {
      * Gives the music at the head of the queue, or null if the queue is empty.
      * Takes care of synchronisation
      */
-    fun pollQueue(): Music? {
+    fun pollQueue(): MusicEntry? {
         return performChangesToQueue {
             if(isEmpty())
                 null
@@ -155,13 +156,23 @@ object TinyJukebox {
             websocket.broadcast(errorMessage)
     }
 
+    fun getFromQueue(nameToRemove: String, index: Int): MusicEntry? {
+        if(index < queue.size) {
+            val foundName = queue[index].music.name
+            if (foundName == nameToRemove) {
+                return queue[index]
+            }
+        }
+        return null
+    }
+
     /**
      * Remove a given track
      */
     fun removeFromQueue(nameToRemove: String, index: Int): Boolean {
         val result = performChangesToQueue {
             if(index < size) {
-                val foundName = this[index].name
+                val foundName = this[index].music.name
                 if(foundName == nameToRemove) {
                     this.removeAt(index)
                     true
@@ -183,7 +194,7 @@ object TinyJukebox {
     fun moveUp(nameToRemove: String, index: Int): Boolean {
         val result = performChangesToQueue {
             if(index in 1 until size) {
-                val foundName = this[index].name
+                val foundName = this[index].music.name
                 if(foundName == nameToRemove) {
                     val music = this.removeAt(index)
                     this.add(index-1, music)
@@ -206,7 +217,7 @@ object TinyJukebox {
     fun moveToStart(nameToRemove: String, index: Int): Boolean {
         val result = performChangesToQueue {
             if(index in 1 until size) {
-                val foundName = this[index].name
+                val foundName = this[index].music.name
                 if(foundName == nameToRemove) {
                     val music = this.removeAt(index)
                     this.add(0, music)
@@ -228,8 +239,8 @@ object TinyJukebox {
      */
     fun moveToEnd(nameToRemove: String, index: Int): Boolean {
         val result = performChangesToQueue {
-            if(index in 1 until size) {
-                val foundName = this[index].name
+            if(index in 0 until size) {
+                val foundName = this[index].music.name
                 if(foundName == nameToRemove) {
                     val music = this.removeAt(index)
                     this.add(music)
@@ -252,7 +263,7 @@ object TinyJukebox {
     fun moveDown(nameToRemove: String, index: Int): Boolean {
         val result = performChangesToQueue {
             if(index in 0 until size-1) {
-                val foundName = this[index].name
+                val foundName = this[index].music.name
                 if(foundName == nameToRemove) {
                     val music = this.removeAt(index)
                     this.add(index+1, music)

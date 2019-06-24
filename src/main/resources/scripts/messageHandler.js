@@ -4,11 +4,16 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue) {
     var queueContainer = $("#queueContainer");
     var alertContainer = $("#alertContainer");
 
+    function hasNoControl() {
+        return !auth.hasPermission("Move") && !auth.hasPermission("Remove") && !auth.hasPermission("RemoveLocked") && !auth.hasPermission("Lock");
+    }
+
     return function(lines) {
         switch (lines[0]) {
             case "queue":
                 var controlsHeaderHTML = '<th scope="col" class="text-nowrap text-center">Controls</th>';
-                if(auth.sessionID === undefined) {
+                const noControl = hasNoControl();
+                if(auth.sessionID === undefined || noControl) {
                     controlsHeaderHTML = '';
                 }
                 var queueHTML = `                
@@ -44,20 +49,41 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue) {
                     if(i === lines.length-1)
                         moveEndHTML = "";
 
+                    if( ! auth.hasPermission("Move")) {
+                        moveUpHTML = "";
+                        moveDownHTML = "";
+                        moveStartHTML = "";
+                        moveEndHTML = "";
+                    }
+                    var removeHTML = `<i class="fas fa-times queueRemoval fa-3x clickable" data-index="${i-1}" data-name="${escapedTitle}"></i>`;
+                    if( ! auth.hasPermission("Remove") || (musicObj.locked && ! auth.hasPermission("RemoveLocked"))) {
+                        removeHTML = "";
+                    }
+
+                    var lockType = musicObj.locked ? "lock" : "lock-open";
+                    var lockHTML = `<i class="fas fa-${lockType} fa-3x lockMusic clickable" data-locked="${musicObj.locked}" data-index="${i-1}" data-name="${escapedTitle}"></i>`;
+                    if( !auth.hasPermission("Lock")) {
+                        lockHTML = '';
+                    }
                     var controlsHTML = `<td class="text-nowrap text-center">
+                            ${lockHTML}
                             ${moveStartHTML}
                             ${moveUpHTML}
-                            <i class="fas fa-times queueRemoval fa-3x clickable" data-index="${i-1}" data-name="${escapedTitle}"></i>
+                            ${removeHTML}
                             ${moveDownHTML}
                             ${moveEndHTML}
                         </td>`;
-                    if(auth.sessionID === undefined) {
+                    if(auth.sessionID === undefined || noControl) {
                         controlsHTML = '';
+                    }
+                    var lock = "";
+                    if(musicObj.locked) {
+                        lock = `<i class="fas fa-lock" style="color: lightgray;"></i>`;
                     }
                     queueHTML += `
                     <tr>
                         <th scope="row">${i}</th>
-                        <td>${musicObj.title}</td>
+                        <td>${lock}${musicObj.title}</td>
                         <td>${duration}</td>
                         ${controlsHTML}
                     </tr>
@@ -69,7 +95,7 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue) {
                             Clear queue
                         </button>
                     </td>`;
-                if(auth.sessionID === undefined) {
+                if(auth.sessionID === undefined || noControl || !auth.hasPermission("EmptyQueue")) {
                     clearQueueHTML = '';
                 }
                 var totalDurationStr = numeral(totalTime/1000).format('00:00:00');
@@ -131,6 +157,20 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue) {
                         var name = link.data("name");
                         var index = link.data("index");
                         auth.requestAuth(playerControl.sendMoveToEndRequestSupplier(name, index));
+                    });
+                });
+
+                $(".lockMusic").each(function() {
+                    var link = $(this);
+                    link.on('click', function(e) {
+                        var name = link.data("name");
+                        var index = link.data("index");
+                        var locked = link.data("locked");
+                        if(locked) {
+                            auth.requestAuth(playerControl.sendUnlockRequestSupplier(name, index));
+                        } else {
+                            auth.requestAuth(playerControl.sendLockRequestSupplier(name, index));
+                        }
                     });
                 });
                 break;

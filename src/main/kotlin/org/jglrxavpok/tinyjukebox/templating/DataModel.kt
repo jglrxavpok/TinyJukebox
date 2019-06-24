@@ -1,6 +1,8 @@
 package org.jglrxavpok.tinyjukebox.templating
 
-data class Auth(val username: String)
+import org.jglrxavpok.tinyjukebox.auth.Permissions
+
+data class Auth(val username: String, val permissions: List<Permissions>)
 data class Text(val title: String)
 
 typealias NameFrequencyPair = Pair<String, Int>

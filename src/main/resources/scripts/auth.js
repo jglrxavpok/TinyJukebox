@@ -144,7 +144,7 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
             xhttp.send(username + "\n" + encodedPassword+"\n");
         },
 
-        logout(username) {
+        logout() {
             var xhttp = new XMLHttpRequest();
             xhttp.open("POST", "/action/logout", true);
             xhttp.onload = function () {
@@ -164,11 +164,12 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
                     document.cookie = "SessionId=00000000-0000-0000-0000-000000000000; expires=Thu, 01 Jan 1970 00:00:01 GMT;"; // delete cookie
                     document.cookie = "Username=undefined; expires=Thu, 01 Jan 1970 00:00:01 GMT;"; // delete cookie
                     document.cookie = "Permissions=NONE; expires=Thu, 01 Jan 1970 00:00:01 GMT;"; // delete cookie
-                    location.reload(true);
+
+                    window.location.href = "/";
                 }
             };
             xhttp.setRequestHeader("Content-Type", "application/octet-stream");
-            xhttp.send(username + "\n");
+            xhttp.send(auth.sessionID + "\n");
         }
     };
 
@@ -206,7 +207,7 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
     });
 
     $("#logoutButton").on('click', function(e) {
-        auth.logout(auth.username);
+        auth.logout();
     });
     return auth;
 });

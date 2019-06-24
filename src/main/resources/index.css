@@ -8,16 +8,9 @@
     color: lightskyblue;
 }
 
-.pagebottom {
-    z-index: 0;
-    position: fixed;
-    right: 0;
-    bottom: 0;
-    left: 0;
-}
-
 .playingContainerContent {
     margin: 50px;
+    color: var(--niceWhite);
     background: rgba(0.2, 0.2, 0.2, 0.2);
 }
 
@@ -26,7 +19,7 @@
     z-index: 10 !important;
 }
 
-.landingBackground {
+.background {
     position: absolute;
     left: 0;
     right: 0;
@@ -36,14 +29,15 @@
     background-size: 100%;
 }
 
-.softLandingBackground {
-    color: var(--niceWhite);
-    background: rgba(0.2, 0.2, 0.2, 0.2);
-    border-top-left-radius: 0px;
-    border-top-right-radius: 0px;
-}
-
 .usernameLink {
     text-decoration: none;
+    color: var(--niceWhite);
+}
+
+.currentQueueText {
+    color: var(--niceWhite);
+}
+
+#queueContainer {
     color: var(--niceWhite);
 }

@@ -9,3 +9,11 @@
     background: url("/images/landingBackground.png");
     background-size: 100%;
 }
+
+.favoritesText {
+    color: var(--niceWhite);
+}
+
+.username {
+    color: var(--niceWhite);
+}

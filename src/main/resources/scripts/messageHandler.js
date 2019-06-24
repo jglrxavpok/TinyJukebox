@@ -17,7 +17,7 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue) {
                     controlsHeaderHTML = '';
                 }
                 var queueHTML = `                
-                <table class="table">
+                <table class="table foreground">
                   <thead>
                     <tr>
                       <th scope="col">#</th>
@@ -183,8 +183,13 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue) {
                     var totalTime = numeral(lines[4]/1000).format('00:00:00');
                     document.title="♪ TinyJukebox - "+name+` (${totalTime})`;
                     var percent = Math.round(lines[5]*1000)/10;
+                    var isLoading = lines[6];
+                    if(isLoading === 'true') {
+                        name = `<div class="d-inline"><div class="loadingIcon d-inline-block">\u231B</div> Loading</div>`;
+                    }
+                    console.log("LOADING: "+isLoading);
                     playingContainer.html(`
-                        <div class="playingContainerContent border rounded m-1">
+                        <div class="foreground border rounded m-1">
                             <p class="fluid-container text-center"><h3 class="display-3 text-center">${name}</h3></p>
                             <div class="d-flex justify-content-between">
                                 <div>00:00:00</div>
@@ -200,7 +205,7 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue) {
                 } else {
                     document.title="TinyJukebox";
                     playingContainer.html(`
-                        <div class="border rounded m-1">
+                        <div class="foreground border rounded m-1">
                             <p class="fluid-container text-center"><h3 class="display-3 text-center">¯\\_(ツ)_/¯ Not playing anything ¯\\_(ツ)_/¯</h3></p>
                         </div>
                         `);
@@ -234,7 +239,10 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue) {
                 var connectedListContainer = $('#connectedList');
                 var html = "";
                 for (let i = 1; i < lines.length; i++) {
-                    html += `<a class="display-4 usernameLink" href="/user/${lines[i]}">${lines[i]}</a>`
+                    if(i !== 1) {
+                        html += ' | ';
+                    }
+                    html += `<a class="usernameLink" href="/user/${lines[i]}">${lines[i]}</a>`
                 }
                 connectedListContainer.html(html);
                 break;

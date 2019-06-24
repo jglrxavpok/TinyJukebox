@@ -12,6 +12,8 @@ import javax.sound.sampled.DataLine
  * Current state of the MusicPlayer thread
  */
 class State(var currentMusic: Music? = null, var format: AudioFormat? = null) {
+    var isLoading: Boolean = false
+
     companion object {
         val nullSource = object: MusicSource {
             override val location: String
@@ -23,7 +25,7 @@ class State(var currentMusic: Music? = null, var format: AudioFormat? = null) {
 
             override fun computeDurationInMillis() = 1L
 
-            override fun fetchName() = "\u231B Loading \u231B" // '\u231B' is the hourglass emoji
+            override fun fetchName() = "__LOADING__"
 
         }
         val specialLoadingMusic = Music(nullSource)
@@ -39,11 +41,13 @@ class State(var currentMusic: Music? = null, var format: AudioFormat? = null) {
     ) {
         this.currentMusic = music
         this.format = format
+        isLoading = false
     }
 
     fun setLoadingState() {
         currentMusic = specialLoadingMusic
         format = nullFormat
+        isLoading = true
     }
 }
 

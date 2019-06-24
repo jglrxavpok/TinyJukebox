@@ -11,13 +11,19 @@
         <!-- Font Awesome css -->
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
     </head>
+    <header>
+        <#include "/navbar.html">
+    </header>
     <body class="background">
-        <h1 class="display-3">${user.username}</h1>
+        <h1 class="display-3 username">${user.username}</h1>
 
+        <br/>
+
+        <h3 class="display-3 favoritesText">Favorites</h3>
         <div class="favorites">
-            <ul>
+            <ul class="list-group list-group-flush foreground">
                 <#list [user.favorites.first, user.favorites.second, user.favorites.third] as favorite>
-                    <li>
+                    <li class="list-group-item foreground">
                         <a href="/music/${favorite.first}">${favorite.first}</a> Played ${favorite.second} times
                     </li>
                 </#list>

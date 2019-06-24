@@ -45,7 +45,7 @@ define(["jquery", "config"], function($, config) {
                 // generate the HTML for this quote
                 quoteContainer.html(
                     `
-                        <blockquote class="blockquote">
+                        <blockquote class="quote blockquote">
                           <p class="mb-0">${quote}</p>
                           ${naming}
                         </blockquote>

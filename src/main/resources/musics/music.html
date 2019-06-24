@@ -11,6 +11,9 @@
         <!-- Font Awesome css -->
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
     </head>
+    <header>
+        <#include "/navbar.html">
+    </header>
     <body class="background">
         <h1 class="text-center display-2 musicTitle">${music.name}</h1>
         <h2 class="display-5"><a data-musicname="${music.name?url}" href="" class="playLink"><i class="fas fa-play"></i> Play</a></h2>

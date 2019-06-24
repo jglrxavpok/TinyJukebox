@@ -6,38 +6,15 @@
         </title>
         <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <link rel="stylesheet" href="/jslib/bootstrap.min.css">
-        <link rel="stylesheet" href="index.css">
+        <link rel="stylesheet" href="/index.css">
 
         <!-- Font Awesome css -->
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
     </head>
-    <body>
-        <nav class="navbar navbar-dark bg-primary">
-            <a class="navbar-brand" href="#">
-                <img src="/images/logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
-                ${text.title}
-            </a>
-
-            <div class="connectedList" id="connectedList">
-
-            </div>
-
-            ${auth.username}
-            <button type="button" id="logoutButton">
-                Log out
-            </button>
-            <!-- About button. Popover filled by about.js !-->
-            <button type="button" data-title="About TinyJukebox" id="aboutButton" data-html="true" class="btn btn-secondary" data-container="body" data-toggle="popover" data-placement="bottom" data-content=
-                    "
-                    Github link: <a href='https://github.com/jglrxavpok/TinyJukebox'>Here</a>
-                    ">
-                About
-            </button>
-        </nav>
-        <div class="bg-warning">
-            <div class="text-center" id="quoteContainer">
-            </div>
-        </div>
+    <header>
+        <#include "/navbar.html">
+    </header>
+    <body class="background">
         <div class="bg-black">
             <div class="text-center" id="alertContainer">
             </div>
@@ -51,14 +28,15 @@
         </div>
         </#if>
         <br/>
-        Here's the current queue:
-        <br/>
-        <div class="queueContainer" id="queueContainer">
+        <div class="text-center display-4 currentQueueText">
+            Current queue
+        </div>
+        <div class="queueContainer foreground" id="queueContainer">
             <!-- The queue will be filled by JS code here !-->
         </div>
         <hr/>
 
-        <div class="m-2 border rounded">
+        <div class="foreground m-2 border rounded">
             <nav class="nav flex-column flex-sm-row mb-3 align-middle nav-tabs">
                 <a class="flex-sm-fill text-sm-center nav-link active" id="pills-home-tab" data-toggle="pill" href="#pills-upload-local" role="tab" aria-controls="pills-home" aria-selected="true">
                     <i class="fas fa-upload"></i> Upload local file
@@ -119,6 +97,12 @@
         </div>
 
     </body>
+
+    <footer class="pagebottom">
+        <div class="connectedList" id="connectedList">
+
+        </div>
+    </footer>
     <script charset="UTF-8" src="jslib/popper.min.js"></script>
     <script charset="UTF-8" type="text/javascript" data-main="scripts/main" src="scripts/require.min.js"></script>
 </html>

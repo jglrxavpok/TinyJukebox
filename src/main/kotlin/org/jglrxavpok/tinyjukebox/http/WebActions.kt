@@ -46,7 +46,6 @@ object WebActions {
      */
     val actionList = listOf(
         Action("upload", this::upload, Permissions.Upload), // upload a local or a youtube link
-        Action("ytsearch", this::ytsearch, Permissions.Upload), // search a video on YT
         Action("auth", AuthChecker.checkAuth(null)), // check authenfication
         Action(
             "playercontrol/empty",
@@ -227,22 +226,6 @@ object WebActions {
                     writer.println("invalid position")
                 }
             }
-        }
-    }
-
-    /**
-     * Searches Youtube for the query given by the client in 'clientReader'/'clientInput'
-     */
-    private fun ytsearch(httpInfo: HttpInfo) {
-        with(httpInfo) {
-            val query = clientReader.readLine()
-            val queryURL = URL("https://www.youtube.com/results?search_query=${query.replace(" ", "+")}")
-            val text = queryURL.readText(StandardCharsets.UTF_8)
-
-            // for debug File("./tmp.txt").writeText(text)
-            val interestingPart = text.substring(text.indexOf("<span class=\"video-time\"") .. text.lastIndexOf("</div><div class=\"yt-lockup-meta \""))
-            // for debug  File("./tmp2.txt").writeText(interestingPart)
-            writer.println(createAnswerJson(interestingPart))
         }
     }
 

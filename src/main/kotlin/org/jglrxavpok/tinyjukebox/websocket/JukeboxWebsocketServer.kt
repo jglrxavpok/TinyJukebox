@@ -1,17 +1,21 @@
 package org.jglrxavpok.tinyjukebox.websocket
 
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 import org.jglrxavpok.tinyjukebox.TinyJukebox
 import org.jglrxavpok.tinyjukebox.auth.RSAPublicKey
 import org.jglrxavpok.tinyjukebox.auth.Session
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.lang.Exception
 import java.lang.StringBuilder
 import java.net.InetSocketAddress
 import java.util.*
 import java.util.Base64.getEncoder
+import kotlin.concurrent.thread
 
 /**
  * Represents the WebSocket server
@@ -91,6 +95,30 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
                         println("${session.username} connected!")
                         clientsConnected += session.username
                         sendConnectedList()
+                    }
+                }
+
+                message.startsWith("ytsearch") -> {
+                    val query = message.split("\n")[1]
+                    println("Loading results for query $query")
+                    thread(isDaemon = true) {
+                        val process = ProcessBuilder()
+                        val ytdl = process.command("youtube-dl", "--simulate", "--print-json", "ytsearch10:$query").start()
+                        val reader = BufferedReader(InputStreamReader(ytdl.inputStream))
+                        val parser = JsonParser()
+                        for(i in 0 until 10) {
+                            val json = reader.readLine()
+                            val obj = parser.parse(json).asJsonObject
+                            val response = JsonObject()
+                            response.addProperty("id", obj["id"].asString)
+                            response.addProperty("title", obj["title"].asString)
+                            response.addProperty("channel", obj["uploader"].asString)
+                            val seconds = obj["duration"].asInt
+                            val duration = (seconds / 60).toString() + ":" + (seconds % 60)
+                            response.addProperty("duration", duration)
+                            conn!!.send("ytsearch\n$query\n$response\n")
+                        }
+                        reader.close()
                     }
                 }
 

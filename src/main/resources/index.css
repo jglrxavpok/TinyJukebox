@@ -41,3 +41,36 @@
 #queueContainer {
     color: var(--niceWhite);
 }
+
+.loader {
+    margin-top: 15px;
+    width: 50px;
+    height: 50px;
+    border: solid 10px cyan;
+    border-bottom-color: gray;
+    border-radius: 50px;
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.videoSelect {
+    animation: fade-in 1s ease-in;
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 100%;
+    }
+}

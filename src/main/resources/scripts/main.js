@@ -11,7 +11,7 @@ requirejs.config({
 });
 
 requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler', 'youtube-search/search', 'playerControl', 'auth', 'reupload'],
-function   ($, bootstrap, quote, config, about, messageHandler, playerControl, auth) {
+function   ($, bootstrap, quote, config, about, messageHandler, ytsearch, playerControl, auth) {
     $('.alert').alert();
 
     quote.init(); // force the quote to appear right at the start
@@ -23,6 +23,7 @@ function   ($, bootstrap, quote, config, about, messageHandler, playerControl, a
         socketProtocol = "ws";
     }
     var socket = new WebSocket(`${socketProtocol}://${window.location.hostname}:${config.websocketPort}`);
+    ytsearch.websocket = socket;
     console.log("Socket addr is "+`${socketProtocol}://${window.location.hostname}:${config.websocketPort}`);
 
     socket.onopen = function (ev) {

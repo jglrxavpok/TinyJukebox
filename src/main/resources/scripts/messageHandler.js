@@ -1,5 +1,5 @@
-define(['jquery', 'bootstrap', 'playerControl', 'auth', 'quote', 'numeraljs', 'miniQueue'],
-function($, bootstrap, playerControl, auth, quote, numeral, miniQueue) {
+define(['jquery', 'bootstrap', 'playerControl', 'auth', 'quote', 'numeraljs', 'miniQueue', 'youtube-search/search'],
+function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch) {
     var playingContainer = $("#playingContainer");
     var queueContainer = $("#queueContainer");
     var alertContainer = $("#alertContainer");
@@ -10,6 +10,10 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue) {
 
     return function(lines) {
         switch (lines[0]) {
+            case "ytsearch":
+                ytsearch.addResult(lines[1], JSON.parse(lines[2]));
+                break;
+
             case "queue":
                 var controlsHeaderHTML = '<th scope="col" class="text-nowrap text-center">Controls</th>';
                 const noControl = hasNoControl();

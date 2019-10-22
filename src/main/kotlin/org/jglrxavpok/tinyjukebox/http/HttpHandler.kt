@@ -11,12 +11,16 @@ import org.jglrxavpok.tinyjukebox.auth.Session
 import org.jglrxavpok.tinyjukebox.exceptions.InvalidSessionException
 import org.jglrxavpok.tinyjukebox.templating.*
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
+import org.jtwig.JtwigModel
 import java.io.*
 import java.net.Socket
 import java.net.URLDecoder
 import java.nio.file.Paths
 import java.time.LocalTime
 import org.jglrxavpok.tinyjukebox.templating.Text as TemplatingText
+import org.jtwig.JtwigTemplate
+
+
 
 /**
  * Thread to handle HTTP requests from a client
@@ -169,7 +173,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                 }
                 val model = hashMapOf<String, Any>()
                 model["musics"] = musics
-                serve("/musics/musics.html", model)
+                serve("/musics/musics.html.twig", model)
                 return
             }
 
@@ -198,11 +202,11 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                     if(session.username == user) {
                         // TODO: show non-public info
                     }
-                    serve("/users/user.html", userModel)
+                    serve("/users/user.html.twig", userModel)
                 } else {
                     val model = hashMapOf<String, Any>()
                     model["name"] = user
-                    serve("/users/unknown.html", model)
+                    serve("/users/unknown.html.twig", model)
                 }
                 return
             }
@@ -217,11 +221,11 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                     val musicInfo = transaction { TJDatabase.Musics.select { TJDatabase.Musics.name eq music }.first() }
                     val duration = LocalTime.ofSecondOfDay(musicInfo[TJDatabase.Musics.length]/1000)
                     musicModel["music"] = MusicModel(music, musicInfo[TJDatabase.Musics.timesPlayedTotal], musicInfo[TJDatabase.Musics.timesSkippedTotal], duration.toString())
-                    serve("/musics/music.html", musicModel)
+                    serve("/musics/music.html.twig", musicModel)
                 } else {
                     val model = hashMapOf<String, Any>()
                     model["name"] = music
-                    serve("/musics/unknown.html", model)
+                    serve("/musics/unknown.html.twig", model)
                 }
                 return
             }
@@ -238,9 +242,9 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
         serve(
             if(location == "/" || location == "index.html") {
                 if(session == Session.Anonymous) {
-                    "/landing.html"
+                    "/landing.html.twig"
                 } else {
-                    "/index.html"
+                    "/index.html.twig"
                 }
             } else {
                 location
@@ -255,21 +259,32 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
         try {
             val resourceStream = javaClass.getResourceAsStream(pageName) ?: return htmlError(404)
             htmlError(200, type=getMIME(pageName))
-            if(pageName.endsWith(".png")) {
-                writer.flush()
-                client.getOutputStream().write(resourceStream.readBytes())
-                client.getOutputStream().flush()
-            } else if(pageName.endsWith(".html")) {
-                val dataModel = hashMapOf<String, Any>()
-                dataModel += baseDataModel
-                if(session != Session.Anonymous) {
-                    dataModel["auth"] = Auth(session.username, TJDatabase.getPermissions(session.username))
+            println("Serving $pageName")
+            when {
+                pageName.endsWith(".png") -> {
+                    writer.flush()
+                    client.getOutputStream().write(resourceStream.readBytes())
+                    client.getOutputStream().flush()
                 }
-                dataModel["text"] = TemplatingText(Config[Text.title])
-                FreeMarker.processTemplate(pageName, dataModel, writer)
-            } else {
-                val text = resourceStream.reader().readText()
-                writer.println(applyVariables(text))
+                pageName.endsWith(".twig") -> {
+                    val dataModel = hashMapOf<String, Any>()
+                    dataModel += baseDataModel
+                    if(session != Session.Anonymous) {
+                        dataModel["auth"] = Auth(session.username, TJDatabase.getPermissions(session.username))
+                    }
+                    dataModel["text"] = TemplatingText(Config[Text.title])
+
+                    val template = JtwigTemplate.classpathTemplate(pageName)
+                    val model = JtwigModel.newModel(dataModel)
+                    val out = ByteArrayOutputStream()
+                    template.render(model, out)
+                    writer.println(String(out.toByteArray()))
+                    out.close()
+                }
+                else -> {
+                    val text = resourceStream.reader().readText()
+                    writer.println(applyVariables(text))
+                }
             }
         } catch (e: Exception) {
             throw RuntimeException("Error while serving $pageName", e)
@@ -291,6 +306,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                 "ttf" -> "application/x-font-truetype"
                 "svg" -> "image/svg+xml"
                 "otf" -> "application/x-font-opentype"
+                "twig" -> getMIME(pageName.substringBeforeLast("."))
 
                 else -> javaClass.getResource(pageName).openConnection().contentType
             }

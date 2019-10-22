@@ -36,8 +36,8 @@ dependencies {
     // Exposed (SQL Framework)
     compile 'org.jetbrains.exposed:exposed:0.14.3'
     
-    // FreeMarker (Templating Engine)
-    compile group: 'org.freemarker', name: 'freemarker', version: '2.3.28'
+    // JTwig (Templating Engine)
+    compile "org.jtwig:jtwig-core:5.87.0.RELEASE"
 
     // SQLite Driver
     compile "org.xerial:sqlite-jdbc:3.21.0.1"

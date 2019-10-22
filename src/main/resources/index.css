@@ -46,8 +46,8 @@
     margin-top: 15px;
     width: 50px;
     height: 50px;
-    border: solid 10px cyan;
-    border-bottom-color: gray;
+    border: solid 10px gray;
+    border-bottom-color: cyan;
     border-radius: 50px;
     animation: spin 1s infinite linear;
 }

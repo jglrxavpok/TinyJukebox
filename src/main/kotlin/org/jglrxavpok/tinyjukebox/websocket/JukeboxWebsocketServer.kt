@@ -114,7 +114,7 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
                             response.addProperty("title", obj["title"].asString)
                             response.addProperty("channel", obj["uploader"].asString)
                             val seconds = obj["duration"].asInt
-                            val duration = (seconds / 60).toString() + ":" + (seconds % 60)
+                            val duration = (seconds / 60).toString() + ":" + String.format("%02d", seconds % 60)
                             response.addProperty("duration", duration)
                             conn!!.send("ytsearch\n$query\n$response\n")
                         }

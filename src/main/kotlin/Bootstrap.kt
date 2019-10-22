@@ -4,7 +4,6 @@ import org.jglrxavpok.tinyjukebox.*
 import org.jglrxavpok.tinyjukebox.auth.RSALoadKeyOrCreate
 import org.jglrxavpok.tinyjukebox.http.HttpHandler
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
-import org.jglrxavpok.tinyjukebox.templating.FreeMarker
 import org.jglrxavpok.tinyjukebox.templating.TJDatabase
 import org.jglrxavpok.tinyjukebox.websocket.JukeboxWebsocketServer
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
@@ -49,7 +48,6 @@ fun main() {
     System.setOut(PrintStream(dualOut, true))
     System.setErr(PrintStream(dualErr, true))
     Config.load()
-    FreeMarker.init()
     println("Loading Database...")
     TJDatabase.init()
     println("Finished loading!")

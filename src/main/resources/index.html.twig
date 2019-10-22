@@ -12,7 +12,7 @@
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
     </head>
     <header>
-        <#include "/navbar.html">
+        {% include "/navbar.html.twig" %}
     </header>
     <body class="background">
         <div class="bg-black">
@@ -22,11 +22,11 @@
         <div class="playingContainer" id="playingContainer">
             <!-- The playingContainer will be filled by JS code here !-->
         </div>
-        <#if auth.permissions?seq_contains("Skip")>
-        <div class="text-center">
-            <button class="btn btn-danger btn-lg" role="button" id="skipButton">Skip !</button>
-        </div>
-        </#if>
+        {% if "Skip" in auth.permissions %}
+            <div class="text-center">
+                <button class="btn btn-danger btn-lg" role="button" id="skipButton">Skip !</button>
+            </div>
+        {% endif %}
         <br/>
         <div class="text-center display-4 currentQueueText">
             Current queue

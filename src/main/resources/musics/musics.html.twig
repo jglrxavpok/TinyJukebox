@@ -1,0 +1,15 @@
+{% extends "/musics/musiclayout.html.twig" %}
+
+{% block title %}
+    TinyJukebox - Music list
+{% endblock %}
+{% block body %}
+    <h1 class="display-2">All musics</h1>
+    <ul>
+        {% for music in musics %}
+            <li>
+                <a href="/music/{{ music.name|url_encode }}">{{ music.name }}</a> Played {{ music.timesPlayed }} times, Skipped {{ music.timesSkipped }} times
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

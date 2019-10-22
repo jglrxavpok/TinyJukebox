@@ -1,0 +1,20 @@
+{% extends "/users/userlayout.html.twig" %}
+{% block title %}
+TinyJukebox - User {{ user.username }}
+{% endblock %}
+{% block body %}
+    <h1 class="display-3 username">{{ user.username }}</h1>
+
+    <br/>
+
+    <h3 class="display-3 favoritesText">Favorites</h3>
+    <div class="favorites">
+        <ul class="list-group list-group-flush foreground">
+            {% for favorite in [user.favorites.first, user.favorites.second, user.favorites.third] %}
+                <li class="list-group-item foreground">
+                    <a href="/music/{{ favorite.first }}">{{ favorite.first }}</a> Played {{ favorite.second }} times
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

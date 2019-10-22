@@ -2,6 +2,9 @@
 {% block custom_css %}
     <link rel="stylesheet" href="/musics/music.css">
 {% endblock %}
+{% block subbody %}
+    {% include "/miniQueue.html" %}
+{% endblock %}
 {% block footer %}
     <div class="playingContainer" style="color: white;" id="playingContainer">
         <!-- The playingContainer will be filled by JS code here !-->

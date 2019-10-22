@@ -7,10 +7,16 @@
     <div class="text-center" id="quoteContainer">
     </div>
     <div>
-        <a id="profileLink" href="/user/${auth.username}">${auth.username}</a>
-        <button type="button" id="logoutButton">
-            Log out
+        <#if auth??>
+            <a id="profileLink" href="/user/${auth.username}">${auth.username}</a>
+            <button type="button" id="logoutButton">
+                Log out
+            </button>
+        <#else>
+        <button type="button" id="loginButton">
+            Log in
         </button>
+        </#if>
         <!-- About button. Popover filled by about.js !-->
         <button type="button" data-title="About TinyJukebox" id="aboutButton" data-html="true" class="btn btn-secondary" data-container="body" data-toggle="popover" data-placement="bottom" data-content=
                 "

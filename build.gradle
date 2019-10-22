@@ -71,3 +71,8 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
+
+task run(type: JavaExec) {
+    main = "-jar"
+    args "build/libs/tinyjukebox-"+project.version+".jar", "-Xss32M"
+}

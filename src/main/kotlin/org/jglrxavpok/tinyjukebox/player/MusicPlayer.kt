@@ -135,6 +135,7 @@ object MusicPlayer: Thread("Music Player") {
                     //Block and wait for internal buffer of the data line to empty.
                     sourceDataLine.flush()
                     sourceDataLine.close()
+                    din.close()
 
                     state.setPlaying(null, null)
                     bytesRead = 0

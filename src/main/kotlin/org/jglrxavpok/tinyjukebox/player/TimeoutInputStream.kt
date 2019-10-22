@@ -10,14 +10,6 @@ import kotlinx.coroutines.*
  */
 class TimeoutInputStream(val baseInput: InputStream, val timeout: Long): InputStream() {
     override fun read(): Int {
-        return runBlocking {
-            withTimeout(timeout) {
-                baseInput.read()
-            }
-        }
-    }
-
-    override fun read(b: ByteArray?, off: Int, len: Int): Int {
-        return runBlocking { withTimeout(timeout) { baseInput.read(b, off, len) } }
+        return baseInput.read()
     }
 }

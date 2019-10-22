@@ -42,7 +42,7 @@ define(['jquery'], function($) {
                 `);
             $(".videoSelect").each(function() {
                 var link = $(this);
-                link.on('click', function(e) {
+                link.off('click').on('click', function(e) {
                     var videoID = link.data("videoid");
 
                     var xhttp = new XMLHttpRequest();

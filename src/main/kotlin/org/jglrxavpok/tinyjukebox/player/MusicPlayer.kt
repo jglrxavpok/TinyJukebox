@@ -70,11 +70,16 @@ object MusicPlayer: Thread("Music Player") {
      */
     private var skipRequested = false
 
+    internal var debugInfo = "unitialized"
+
     override fun run() {
         while(!Thread.currentThread().isInterrupted) {
+            debugInfo = "polling queue"
             val musicEntry = TinyJukebox.pollQueue()
             try {
                 if(musicEntry != null) {
+                    debugInfo = "loading music"
+
                     val music = musicEntry.music
                     state.setLoadingState()
                     updateClients(force = true)
@@ -96,6 +101,8 @@ object MusicPlayer: Thread("Music Player") {
 
                     val timeoutInput = TimeoutInputStream(din, 1000)
 
+                    debugInfo = "opening audio output"
+
                     // audio output
                     val dataLineInfo = DataLine.Info(SourceDataLine::class.java, decodedFormat)
                     val sourceDataLine = AudioSystem.getLine(dataLineInfo) as SourceDataLine
@@ -113,11 +120,14 @@ object MusicPlayer: Thread("Music Player") {
                     do {
                         val cnt: Int
                         try {
+                            debugInfo = "reading from input"
+
                             cnt = timeoutInput.read(buffer)
                             if(cnt >= 0) {
                                 bytesRead += cnt
-                                //Write data to the internal buffer of the data line where it will be delivered to the speaker.
-                                sourceDataLine.write(buffer, 0, cnt)
+                                debugInfo = "write to line"
+
+                                writeToLine(sourceDataLine, buffer, cnt)
 
                                 updateClients() // send playing state to clients if necessary
                             }
@@ -127,18 +137,24 @@ object MusicPlayer: Thread("Music Player") {
                                 break // breaks out of reading -> skips current music
                             }
                         } catch (e: Exception) {
+                            debugInfo = "cleaning up after exception"
+
                             timeoutInput.close()
                             e.printStackTrace()
                             break
                         }
                     } while(cnt != -1)
                     //Block and wait for internal buffer of the data line to empty.
-                    sourceDataLine.flush()
+                    sourceDataLine.drain()
+                    sourceDataLine.stop()
                     sourceDataLine.close()
                     din.close()
+                    debugInfo = "cleaning up"
 
                     state.setPlaying(null, null)
                     bytesRead = 0
+
+                    debugInfo = "reset"
                     updateClients()
                 } else {
                     updateClients()
@@ -149,9 +165,20 @@ object MusicPlayer: Thread("Music Player") {
                 state.setPlaying(null, null)
             }
 
+            debugInfo = "polling queue"
 
-            Thread.sleep(200)
+            sleep(200)
         }
+    }
+
+    private fun writeToLine(sourceDataLine: SourceDataLine, buffer: ByteArray, cnt: Int) {
+        if(sourceDataLine.available() == 0) {
+            sourceDataLine.drain()
+        }
+        //Write data to the internal buffer of the data line where it will be delivered to the speaker.
+        sourceDataLine.write(buffer, 0, cnt)
+
+        debugInfo = "update clients"
     }
 
     /**
@@ -166,5 +193,14 @@ object MusicPlayer: Thread("Music Player") {
 
     fun skip() {
         skipRequested = true
+    }
+
+    fun isSkipRequested() = skipRequested
+
+    fun position(): Long {
+        return if(state.isPlaying()) {
+            val frame = bytesRead / state.format!!.frameSize
+            (frame / state.format!!.frameRate * 1000.0).toLong() // in milliseconds
+        } else -1
     }
 }

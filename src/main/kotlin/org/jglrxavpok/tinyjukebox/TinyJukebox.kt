@@ -123,10 +123,7 @@ object TinyJukebox {
                                 }
                             }*/true
 
-        val position = if(playerState.isPlaying()) {
-            val frame = MusicPlayer.bytesRead / playerState.format!!.frameSize
-            (frame / playerState.format!!.frameRate * 1000.0).toLong() // in milliseconds
-        } else null
+        val position = MusicPlayer.position()
         // copy state
         currentMusic = playerState.currentMusic
         currentlyPlaying = currentMusic != null

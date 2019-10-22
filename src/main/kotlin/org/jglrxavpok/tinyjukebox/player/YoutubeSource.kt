@@ -45,7 +45,7 @@ class YoutubeSource(val url: String): MusicSource {
     override fun createStream(): InputStream {
         println("Attempting to read music from YT url: $url")
         val process = ProcessBuilder()
-        val ytdl = process.command("youtube-dl", "-o", "-", url)
+        val ytdl = process.command("youtube-dl", "-v", "-o", "-", url)
 
         val tmp = File("./music/yt/tmp.txt")
         if(!tmp.parentFile.exists()) {
@@ -54,18 +54,11 @@ class YoutubeSource(val url: String): MusicSource {
         tmp.createNewFile()
         ytdl.redirectError(tmp)
 
-        val ffmpeg = ProcessBuilder().command("ffmpeg", "-i", "-", "-f", "mp3", "-vn", "-")
+        val ffmpeg = ProcessBuilder().command("ffmpeg", "-i", "-", "-f", "mp3", "-vn", "-", "-loglevel", "debug")
+        ffmpeg.redirectError(tmp)
         val ytdlProcess = ytdl.start()
         val ffmpegProcess = ffmpeg.start()
-        // val vlcProcess = vlc.start()
         PipingThread(ytdlProcess, ffmpegProcess).start()
-        //PipingThread(out, vlcProcess.outputStream).start()
-        /*return object: InputStream() {
-            override fun read(): Int {
-                return -1
-            }
-
-        }*/
         return ffmpegProcess.inputStream
     }
 
@@ -75,5 +68,9 @@ class YoutubeSource(val url: String): MusicSource {
         val result = reader.readLine()
         reader.close()
         return result
+    }
+
+    override fun toString(): String {
+        return "Youtube($url)"
     }
 }

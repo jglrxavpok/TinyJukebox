@@ -9,6 +9,18 @@ import kotlinx.coroutines.*
  * Requires a base InputStream and a timeout in milliseconds
  */
 class TimeoutInputStream(val baseInput: InputStream, val timeout: Long): InputStream() {
+    override fun read(b: ByteArray): Int {
+        val deferredResult = GlobalScope.async {
+            return@async super.read(b)
+        }
+
+        return runBlocking {
+            withTimeout(timeout) {
+                deferredResult.await()
+            }
+        }
+    }
+
     override fun read(): Int {
         return baseInput.read()
     }

@@ -6,7 +6,6 @@ package org.jglrxavpok.tinyjukebox
 class PipingThread(val left: Process, val right: Process): Thread("Piping thread $left | $right") {
 
     override fun run() {
-        super.run()
         val buffer = ByteArray(1024)
         try {
             do {

@@ -1,7 +1,5 @@
 package org.jglrxavpok.tinyjukebox.player
 
-import org.jglrxavpok.tinyjukebox.player.MusicSource
-
 /**
  * Represents a music inside the queue or being played
  */

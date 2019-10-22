@@ -14,6 +14,7 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import javax.net.ssl.SSLServerSocket
 import javax.net.ssl.SSLServerSocketFactory
+import kotlin.concurrent.thread
 
 /**
  * TinyJukebox entry point
@@ -89,8 +90,18 @@ fun main() {
         }
     }
     Runtime.getRuntime().addShutdownHook(shutdownThread)
+
+    thread(name = "Client acceptor", isDaemon = false) {
+        while(true) {
+            val client = httpSocket.accept()
+            HttpHandler(client).start()
+        }
+    }
+
+    // accept commands
     while(true) {
-        val client = httpSocket.accept()
-        HttpHandler(client).start()
+        val line = readLine()!!
+        val parts = line.trim().split(" ")
+        Commands.execute(parts)
     }
 }

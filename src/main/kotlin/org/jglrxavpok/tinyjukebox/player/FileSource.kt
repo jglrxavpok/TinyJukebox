@@ -39,4 +39,8 @@ class FileSource(val file: File): MusicSource {
     override fun fetchName(): String {
         return file.nameWithoutExtension
     }
+
+    override fun toString(): String {
+        return "File(${file.name})"
+    }
 }

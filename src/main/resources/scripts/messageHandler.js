@@ -1,6 +1,5 @@
-define(['jquery', 'bootstrap', 'playerControl', 'auth', 'quote', 'numeraljs', 'miniQueue', 'youtube-search/search'],
-function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch) {
-    var playingContainer = $("#playingContainer");
+define(['jquery', 'bootstrap', 'playerControl', 'auth', 'quote', 'numeraljs', 'miniQueue', 'youtube-search/search', 'vueapp'],
+function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch, app) {
     var queueContainer = $("#queueContainer");
     var alertContainer = $("#alertContainer");
 
@@ -121,7 +120,7 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch)
 
                 $(".queueRemoval").each(function() {
                     var link = $(this);
-                    link.on('click', function(e) {
+                    link.off('click').on('click', function(e) {
                         var name = link.data("name");
                         var index = link.data("index");
                         auth.requestAuth(playerControl.sendRemoveRequestSupplier(name, index));
@@ -130,7 +129,7 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch)
 
                 $(".moveUp").each(function() {
                     var link = $(this);
-                    link.on('click', function(e) {
+                    link.off('click').on('click', function(e) {
                         var name = link.data("name");
                         var index = link.data("index");
                         auth.requestAuth(playerControl.sendMoveUpRequestSupplier(name, index));
@@ -139,7 +138,7 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch)
 
                 $(".moveDown").each(function() {
                     var link = $(this);
-                    link.on('click', function(e) {
+                    link.off('click').on('click', function(e) {
                         var name = link.data("name");
                         var index = link.data("index");
                         auth.requestAuth(playerControl.sendMoveDownRequestSupplier(name, index));
@@ -148,7 +147,7 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch)
 
                 $(".moveToStart").each(function() {
                     var link = $(this);
-                    link.on('click', function(e) {
+                    link.off('click').on('click', function(e) {
                         var name = link.data("name");
                         var index = link.data("index");
                         auth.requestAuth(playerControl.sendMoveToStartRequestSupplier(name, index));
@@ -157,7 +156,7 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch)
 
                 $(".moveToEnd").each(function() {
                     var link = $(this);
-                    link.on('click', function(e) {
+                    link.off('click').on('click', function(e) {
                         var name = link.data("name");
                         var index = link.data("index");
                         auth.requestAuth(playerControl.sendMoveToEndRequestSupplier(name, index));
@@ -166,7 +165,7 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch)
 
                 $(".lockMusic").each(function() {
                     var link = $(this);
-                    link.on('click', function(e) {
+                    link.off('click').on('click', function(e) {
                         var name = link.data("name");
                         var index = link.data("index");
                         var locked = link.data("locked");
@@ -188,31 +187,15 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch)
                     document.title="♪ TinyJukebox - "+name+` (${totalTime})`;
                     var percent = Math.round(lines[5]*1000)/10;
                     var isLoading = lines[6];
-                    if(isLoading === 'true') {
-                        name = `<div class="d-inline"><div class="loadingIcon d-inline-block">\u231B</div> Loading</div>`;
-                    }
-                    console.log("LOADING: "+isLoading);
-                    playingContainer.html(`
-                        <div class="foreground border rounded m-1">
-                            <p class="fluid-container text-center"><h3 class="display-3 text-center">${name}</h3></p>
-                            <div class="d-flex justify-content-between">
-                                <div>00:00:00</div>
-                                <div>${totalTime}</div>
-                            </div>
-                            <div class="progress">
-                              <div class="progress-bar bg-success" role="progressbar" style="width: ${percent}%" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100">
-                                ${currentTime}
-                              </div>
-                            </div>
-                        </div>
-                        `);
+                    app.playerState.loading = isLoading === "true";
+                    app.playerState.hasMusic = true;
+                    app.playerState.name = name;
+                    app.playerState.percent = percent;
+                    app.playerState.duration = totalTime;
+                    app.playerState.currentTime = currentTime;
                 } else {
                     document.title="TinyJukebox";
-                    playingContainer.html(`
-                        <div class="foreground border rounded m-1">
-                            <p class="fluid-container text-center"><h3 class="display-3 text-center">¯\\_(ツ)_/¯ Not playing anything ¯\\_(ツ)_/¯</h3></p>
-                        </div>
-                        `);
+                    app.playerState.hasMusic = false;
                 }
                 break;
 

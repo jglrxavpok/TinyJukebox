@@ -74,3 +74,9 @@
         opacity: 100%;
     }
 }
+
+.need-login {
+    color: var(--niceWhite);
+    text-align: center;
+    font-size: 17pt;
+}

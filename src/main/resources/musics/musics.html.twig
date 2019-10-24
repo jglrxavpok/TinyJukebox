@@ -4,11 +4,12 @@
     TinyJukebox - Music list
 {% endblock %}
 {% block body %}
-    <h1 class="display-2">All musics</h1>
-    <ul>
+    <h1 class="display-2" id="listName">All musics</h1>
+    <ul id="musicList">
         {% for music in musics %}
             <li>
-                <a href="/music/{{ music.name|url_encode }}">{{ music.name }}</a> Played {{ music.timesPlayed }} times, Skipped {{ music.timesSkipped }} times
+                <a class="musicTitle" href="/music/{{ music.name|url_encode }}"><b>{{ music.name }}</b></a>
+                <span class="musicStats"> Played {{ music.timesPlayed }} times, Skipped {{ music.timesSkipped }} times</span>
             </li>
         {% endfor %}
     </ul>

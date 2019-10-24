@@ -1,4 +1,4 @@
-define(['jquery'], function($) {
+define(['jquery', 'vueapp'], function($, app) {
 
     var ytsearch = {
         websocket: undefined,

@@ -49,6 +49,12 @@
     color: var(--niceWhite);
 }
 
+.titleLink:hover {
+    text-decoration: none;
+    color: var(--niceWhite);
+    transform: 20pt;
+}
+
 .quote {
     margin: -1%;
 }

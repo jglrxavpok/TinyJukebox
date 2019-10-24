@@ -186,18 +186,10 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                     val userModel = hashMapOf<String, Any>()
                     val favorites = transaction {
                         TJDatabase.Favorites.select { TJDatabase.Favorites.user eq user }.orderBy(
-                            TJDatabase.Favorites.timesPlayed, SortOrder.DESC).take(3)
+                            TJDatabase.Favorites.timesPlayed, SortOrder.DESC).take(10)
                     }
 
-                    val none = NameFrequencyPair("NONE", 0)
-
-                    fun NameFrequencyPair(row: ResultRow) = NameFrequencyPair(row[TJDatabase.Favorites.music], row[TJDatabase.Favorites.timesPlayed])
-
-                    val first = if(favorites.isEmpty()) none else NameFrequencyPair(favorites[0])
-                    val second = if(favorites.size < 2) none else NameFrequencyPair(favorites[1])
-                    val third = if(favorites.size < 3) none else NameFrequencyPair(favorites[2])
-
-                    userModel["user"] = User(user, Favorites(first, second, third))
+                    userModel["user"] = User(user, getTopFavorites(favorites).toTypedArray())
 
                     if(session.username == user) {
                         // TODO: show non-public info
@@ -241,15 +233,17 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
         }
         serve(
             if(location == "/" || location == "index.html") {
-                if(session == Session.Anonymous) {
-                    "/landing.html.twig"
-                } else {
-                    "/index.html.twig"
-                }
+                "/index.html.twig"
             } else {
                 location
             }
         )
+    }
+
+    private fun getTopFavorites(favorites: List<ResultRow>): List<NameFrequencyPair> {
+        return favorites.map { row ->
+            NameFrequencyPair(row[TJDatabase.Favorites.music], row[TJDatabase.Favorites.timesPlayed])
+        }
     }
 
     /**
@@ -260,6 +254,9 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
             val resourceStream = javaClass.getResourceAsStream(pageName) ?: return htmlError(404)
             htmlError(200, type=getMIME(pageName))
             println("Serving $pageName")
+            val dataModel = hashMapOf<String, Any>()
+            dataModel += baseDataModel
+            dataModel["debugMode"] = Config[Debug.enabled]
             when {
                 pageName.endsWith(".png") -> {
                     writer.flush()
@@ -267,8 +264,6 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
                     client.getOutputStream().flush()
                 }
                 pageName.endsWith(".twig") -> {
-                    val dataModel = hashMapOf<String, Any>()
-                    dataModel += baseDataModel
                     if(session != Session.Anonymous) {
                         dataModel["auth"] = Auth(session.username, TJDatabase.getPermissions(session.username))
                     }

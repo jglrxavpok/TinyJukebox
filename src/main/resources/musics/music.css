@@ -6,11 +6,19 @@
     right: 0;
     top: 0;
     bottom: 0;
-    background: url("/images/landingBackground.png");
     background-size: 100%;
+    background: url("/images/landingBackground.png") fixed;
 }
 
 .musicTitle {
+    color: var(--niceWhite);
+}
+
+#listName {
+    color: var(--niceWhite);
+}
+
+.musicStats {
     color: var(--niceWhite);
 }
 
@@ -19,4 +27,8 @@
     position: absolute;
     right: 0;
     top: calc(25vh);
+}
+
+#musicList {
+    margin-bottom: 20vh;
 }

@@ -9,11 +9,11 @@
     <div>
         {% if auth is defined %}
             <a id="profileLink" href="/user/{{ auth.username }}">{{ auth.username }}</a>
-            <button type="button" id="logoutButton">
+            <button class="btn btn-secondary" type="button" id="logoutButton">
                 Log out
             </button>
         {% else %}
-            <button type="button" id="loginButton">
+            <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#loginModal">
                 Log in
             </button>
         {% endif %}
@@ -26,3 +26,28 @@
         </button>
     </div>
 </nav>
+
+<div id="login-modal-container">
+    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Log in</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <label for="authUsername">Username</label>
+                    <input type="text" class="form-control" id="authUsername" />
+                    <label for="authPassword">Password</label>
+                    <input type="password" class="form-control" id="authPassword" />
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="button" id="loginButton">Log in</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

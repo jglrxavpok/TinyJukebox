@@ -10,9 +10,7 @@
         <div class="text-center" id="alertContainer">
         </div>
     </div>
-    <div class="playingContainer" id="playingContainer">
-        <!-- The playingContainer will be filled by JS code here !-->
-    </div>
+    <playing-container :player-state="playerState"></playing-container>
     {% if "Skip" in auth.permissions %}
         <div class="text-center">
             <button class="btn btn-danger btn-lg" role="button" id="skipButton">Skip !</button>
@@ -27,36 +25,42 @@
     </div>
     <hr/>
 
-    <div class="foreground m-2 border rounded">
-        <nav class="nav flex-column flex-sm-row mb-3 align-middle nav-tabs">
-            <a class="flex-sm-fill text-sm-center nav-link active" id="pills-home-tab" data-toggle="pill" href="#pills-upload-local" role="tab" aria-controls="pills-home" aria-selected="true">
-                <i class="fas fa-upload"></i> Upload local file
-            </a>
-            <a class="flex-sm-fill text-sm-center nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-upload-youtube" role="tab" aria-controls="pills-profile" aria-selected="false">
-                <img src="/images/yt_icon_mono.png" style="width: 45px; height:32px" alt="YouTube icon"/> Upload from Youtube
-            </a>
-        </nav>
-        <div class="tab-content text-center m-2" id="pills-tabContent">
-            <div class="tab-pane fade show active" id="pills-upload-local" role="tabpanel" aria-labelledby="pills-upload-local-tab">
-                <input type="file" name="musicFile" id="musicFile" />
-                <button id="uploadLocal" class="btn btn-primary btn-lg">
-                    Upload local file
-                </button>
-            </div>
-            <div class="tab-pane fade" id="pills-upload-youtube" role="tabpanel" aria-labelledby="pills-upload-youtube-tab">
-                <input type="text" name="youtubeLink" id="youtubeLink" placeholder="https://youtube.com/watch?v=<id>"/>
-                <button id="uploadYoutube" class="btn btn-primary btn-lg">
-                    Upload from YouTube
-                </button>
+    {% if auth and "Upload" in auth.permissions %}
+        <div class="foreground m-2 border rounded">
+            <nav class="nav flex-column flex-sm-row mb-3 align-middle nav-tabs">
+                <a class="flex-sm-fill text-sm-center nav-link active" id="pills-home-tab" data-toggle="pill" href="#pills-upload-local" role="tab" aria-controls="pills-home" aria-selected="true">
+                    <i class="fas fa-upload"></i> Upload local file
+                </a>
+                <a class="flex-sm-fill text-sm-center nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-upload-youtube" role="tab" aria-controls="pills-profile" aria-selected="false">
+                    <img src="/images/yt_icon_mono.png" style="width: 45px; height:32px" alt="YouTube icon"/> Upload from Youtube
+                </a>
+            </nav>
+            <div class="tab-content text-center m-2" id="pills-tabContent">
+                <div class="tab-pane fade show active" id="pills-upload-local" role="tabpanel" aria-labelledby="pills-upload-local-tab">
+                    <input type="file" name="musicFile" id="musicFile" />
+                    <button id="uploadLocal" class="btn btn-primary btn-lg">
+                        Upload local file
+                    </button>
+                </div>
+                <div class="tab-pane fade" id="pills-upload-youtube" role="tabpanel" aria-labelledby="pills-upload-youtube-tab">
+                    <input type="text" name="youtubeLink" id="youtubeLink" placeholder="https://youtube.com/watch?v=<id>"/>
+                    <button id="uploadYoutube" class="btn btn-primary btn-lg">
+                        Upload from YouTube
+                    </button>
 
-                <hr/>
-                <button class="btn btn-primary" data-toggle="modal" data-target="#ytModal">Search on YouTube</button>
+                    <hr/>
+                    <button class="btn btn-primary" data-toggle="modal" data-target="#ytModal">Search on YouTube</button>
+                </div>
             </div>
         </div>
-    </div>
-    <hr/>
-    <div id="transferProgress"></div>
-    <br/>
+        <hr/>
+        <div id="transferProgress"></div>
+        <br/>
+    {% else %}
+        <div class="need-login">
+            You need to log in to upload music.
+        </div>
+    {% endif %}
 
     <div id="yt-search-modal-container">
         <div class="modal fade" id="ytModal" tabindex="-1" role="dialog" aria-hidden="true">

@@ -6,7 +6,5 @@
     {% include "/miniQueue.html" %}
 {% endblock %}
 {% block footer %}
-    <div class="playingContainer" style="color: white;" id="playingContainer">
-        <!-- The playingContainer will be filled by JS code here !-->
-    </div>
+    <playing-container :player-state="playerState"></playing-container>
 {% endblock %}

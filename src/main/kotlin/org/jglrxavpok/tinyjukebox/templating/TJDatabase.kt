@@ -270,7 +270,7 @@ fun Transaction.isAdmin(username: String): Boolean {
 fun Transaction.auth(username: String, password: String): Boolean {
     val hashPassword = TJDatabase.Users.select {
         TJDatabase.Users.name eq username
-    }.first()[TJDatabase.Users.hashedPassword]
+    }.firstOrNull()?.get(TJDatabase.Users.hashedPassword) ?: return false
     return BCrypt.checkpw(password, hashPassword)
 }
 

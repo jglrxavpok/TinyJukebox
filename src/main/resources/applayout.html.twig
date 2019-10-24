@@ -17,16 +17,25 @@
     {% include "/navbar.html.twig" %}
 </header>
 <body class="background">
-{% block body %}
-{% endblock %}
-{% block subbody %}
-{% endblock %}
+    <div id="vueapp">
+        {% block body %}
+        {% endblock %}
+        {% block subbody %}
+        {% endblock %}
+
+        <footer class="pagebottom">
+            {% block footer %}
+            {% endblock %}
+        </footer>
+
+    </div>
 </body>
 
-<footer class="pagebottom">
-    {% block footer %}
-    {% endblock %}
-</footer>
+{% if debugMode %}
+    <script charset="UTF-8" src="/jslib/vue.js"></script>
+{% else %}
+    <script charset="UTF-8" src="/jslib/vue.min.js"></script>
+{% endif %}
 <script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script charset="UTF-8" type="text/javascript" data-main="/scripts/main" src="/scripts/require.min.js"></script>
 </html>

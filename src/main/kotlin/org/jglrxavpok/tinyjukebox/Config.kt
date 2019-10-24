@@ -15,7 +15,7 @@ object Config {
     private val settingsFile = File("./config.cfg")
     private val properties = Properties()
 
-    private val groups = listOf(Paths, Timings, Network, Text, Security, DatabaseConfig)
+    private val groups = listOf(Paths, Timings, Network, Text, Security, DatabaseConfig, Debug)
 
     fun load() {
         val comments = "TinyJukebox configurations"
@@ -52,6 +52,10 @@ object Config {
     fun getFromProperties(varName: String): String {
         return properties[varName].toString()
     }
+}
+
+object Debug: KeyGroup() {
+    val enabled = BooleanKey(false)
 }
 
 object Text: KeyGroup() {

@@ -202,7 +202,7 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
         auth.signup(signupUsername.val(), auth.encrypt(signupPassword.val()));
     });
 
-    $("#mainLoginButton").on('click', function(e) {
+    $("#loginButton").on('click', function(e) {
         auth.login(usernameInput.val(), auth.encrypt(passwordInput.val()));
     });
 

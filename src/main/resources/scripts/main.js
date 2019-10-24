@@ -1,5 +1,5 @@
 var pathsObject = {
-    jquery: '/jslib/jquery-3.3.1.min', // TODO: add option to use a local version? (in case TinyJukebox is only on a local network)
+    jquery: '/jslib/jquery-3.3.1.min',
     bootstrap: '/jslib/bootstrap.bundle.min',
     numeraljs: '/jslib/numeral.min',
     jsencrypt: '/jslib/jsencrypt.min',
@@ -10,8 +10,8 @@ requirejs.config({
     paths: pathsObject
 });
 
-requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler', 'youtube-search/search', 'playerControl', 'auth', 'reupload'],
-function   ($, bootstrap, quote, config, about, messageHandler, ytsearch, playerControl, auth) {
+requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler', 'youtube-search/search', 'playerControl', 'auth', 'reupload', 'vueapp'],
+function   ($, bootstrap, quote, config, about, messageHandler, ytsearch, playerControl, auth, reupload, app) {
     $('.alert').alert();
 
     quote.init(); // force the quote to appear right at the start

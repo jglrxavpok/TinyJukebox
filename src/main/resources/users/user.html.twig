@@ -10,7 +10,7 @@ TinyJukebox - User {{ user.username }}
     <h3 class="display-3 favoritesText">Favorites</h3>
     <div class="favorites">
         <ul class="list-group list-group-flush foreground">
-            {% for favorite in [user.favorites.first, user.favorites.second, user.favorites.third] %}
+            {% for favorite in user.favorites %}
                 <li class="list-group-item foreground">
                     <a href="/music/{{ favorite.first }}">{{ favorite.first }}</a> Played {{ favorite.second }} times
                 </li>

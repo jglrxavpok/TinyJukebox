@@ -28,25 +28,40 @@
     {% if auth and "Upload" in auth.permissions %}
         <div class="foreground m-2 border rounded">
             <nav class="nav flex-column flex-sm-row mb-3 align-middle nav-tabs">
-                <a class="flex-sm-fill text-sm-center nav-link active" id="pills-home-tab" data-toggle="pill" href="#pills-upload-local" role="tab" aria-controls="pills-home" aria-selected="true">
+                <a class="flex-sm-fill text-sm-center nav-link upload-pill active" id="pills-home-tab" data-toggle="pill" href="#pills-upload-local" role="tab" aria-controls="pills-home" aria-selected="true">
                     <i class="fas fa-upload"></i> Upload local file
                 </a>
-                <a class="flex-sm-fill text-sm-center nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-upload-youtube" role="tab" aria-controls="pills-profile" aria-selected="false">
+                <a class="flex-sm-fill text-sm-center nav-link upload-pill" id="pills-profile-tab" data-toggle="pill" href="#pills-upload-youtube" role="tab" aria-controls="pills-profile" aria-selected="false">
                     <img src="/images/yt_icon_mono.png" style="width: 45px; height:32px" alt="YouTube icon"/> Upload from Youtube
                 </a>
             </nav>
             <div class="tab-content text-center m-2" id="pills-tabContent">
                 <div class="tab-pane fade show active" id="pills-upload-local" role="tabpanel" aria-labelledby="pills-upload-local-tab">
-                    <input type="file" name="musicFile" id="musicFile" />
-                    <button id="uploadLocal" class="btn btn-primary btn-lg">
-                        Upload local file
-                    </button>
+                    <div class="container">
+                        <div class="input-group mb-3">
+                            <div class="custom-file">
+                                <input type="file" name="musicFile" class="custom-file-input" id="musicFile" />
+                                <label for="musicFile" class="custom-file-label">Choose file</label>
+                            </div>
+                            <div class="input-group-append">
+                                <button id="uploadLocal" class="btn btn-primary">
+                                    Upload local file
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="tab-pane fade" id="pills-upload-youtube" role="tabpanel" aria-labelledby="pills-upload-youtube-tab">
-                    <input type="text" name="youtubeLink" id="youtubeLink" placeholder="https://youtube.com/watch?v=<id>"/>
-                    <button id="uploadYoutube" class="btn btn-primary btn-lg">
-                        Upload from YouTube
-                    </button>
+                    <div class="container">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" name="youtubeLink" id="youtubeLink" placeholder="https://youtube.com/watch?v=<id>"/>
+                            <div class="input-group-append">
+                                <button id="uploadYoutube" class="btn btn-primary">
+                                    Upload from YouTube
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
                     <hr/>
                     <button class="btn btn-primary" data-toggle="modal" data-target="#ytModal">Search on YouTube</button>
@@ -56,40 +71,40 @@
         <hr/>
         <div id="transferProgress"></div>
         <br/>
+
+        <div id="yt-search-modal-container">
+            <div class="modal fade" id="ytModal" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Youtube Search</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="ytSearchInput" />
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" id="ytSearchButton">Search</button>
+                                </div>
+                            </div>
+                            <div id="yt-search-results" class="d-flex justify-content-center flex-wrap col-md-14">
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     {% else %}
         <div class="need-login">
             You need to log in to upload music.
         </div>
     {% endif %}
-
-    <div id="yt-search-modal-container">
-        <div class="modal fade" id="ytModal" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Youtube Search</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="ytSearchInput" />
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" id="ytSearchButton">Search</button>
-                            </div>
-                        </div>
-                        <div id="yt-search-results" class="d-flex justify-content-center flex-wrap col-md-14">
-
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 {% endblock %}
 
 {% block footer %}

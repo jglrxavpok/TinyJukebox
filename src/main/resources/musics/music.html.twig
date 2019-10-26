@@ -5,7 +5,9 @@ TinyJukebox - Music {{ music.name }}
 {% endblock %}
 {% block body %}
     <h1 class="text-center display-2 musicTitle">{{ music.name }}</h1>
+    {% if auth and "Upload" in auth.permissions %}
     <h2 class="display-5"><a data-musicname="{{ music.name|url_encode }}" href="#" class="playLink"><i class="fas fa-play"></i> Play</a></h2>
+    {% endif %}
     Length: {{ music.duration }}
     <br/>
     Played {{ music.timesPlayed }} times

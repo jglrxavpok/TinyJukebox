@@ -80,3 +80,11 @@
     text-align: center;
     font-size: 17pt;
 }
+
+.upload-pill.active {
+    color: black;
+}
+
+.upload-pill {
+    color: var(--niceWhite);
+}

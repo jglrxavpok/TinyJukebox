@@ -108,8 +108,11 @@ define(['jquery', 'auth'], function($, auth) {
             return playerControl.sendMusicControlRequestSupplier(name, index, "movetoend")
         },
     };
-    $('#skipButton').on('click', function() {
-        auth.requestAuth(playerControl.sendSkipRequest);
+
+    Vue.nextTick(function() {
+        $('#skipButton').on('click', function() {
+            auth.requestAuth(playerControl.sendSkipRequest);
+        });
     });
     return playerControl;
 });

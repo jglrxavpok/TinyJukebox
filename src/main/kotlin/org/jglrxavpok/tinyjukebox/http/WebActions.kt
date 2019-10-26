@@ -132,7 +132,7 @@ object WebActions {
     private fun verifyLocks(nameToRemove: String, index: Int, replacedIndex: Int, session: Session, writer: PrintWriter): Boolean {
         val entry = TinyJukebox.getFromQueue(nameToRemove, index)
         if(entry == null) {
-            writer.println("invalid position")
+            writer.println("invalid position, no corresponding entry")
             return false
         }
         if(entry.locked) {

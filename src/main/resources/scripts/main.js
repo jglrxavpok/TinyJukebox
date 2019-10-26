@@ -27,7 +27,6 @@ function   ($, bootstrap, quote, config, about, messageHandler, ytsearch, player
     console.log("Socket addr is "+`${socketProtocol}://${window.location.hostname}:${config.websocketPort}`);
 
     socket.onopen = function (ev) {
-        queueContainer.text("Connected!");
         socket.send("SessionId\n"+getCookie("SessionId")+"\n");
     };
 
@@ -38,7 +37,7 @@ function   ($, bootstrap, quote, config, about, messageHandler, ytsearch, player
     };
 
     socket.onerror = function (ev) {
-        queueContainer.text("Error: "+ev.data);
+        console.error("Error: "+ev.data);
     };
 
     function initHttpRequest(id) {

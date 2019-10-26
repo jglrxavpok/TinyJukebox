@@ -38,7 +38,11 @@ define(['jquery', 'jsencrypt'], function($, jsencrypt) {
             return auth.permissions.split(',').includes(permission);
         },
 
-        /**
+        hasNoControl() {
+            return !auth.hasPermission("Move") && !auth.hasPermission("Remove") && !auth.hasPermission("RemoveLocked") && !auth.hasPermission("Lock");
+        },
+
+    /**
          * Opens the auth modal and calls the given callback if the auth passed
          * @param callback
          */

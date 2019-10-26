@@ -20,9 +20,7 @@
     <div class="text-center display-4 currentQueueText">
         Current queue
     </div>
-    <div class="queueContainer foreground" id="queueContainer">
-        <!-- The queue will be filled by JS code here !-->
-    </div>
+    <queue-container :auth="auth" :queue="queue"></queue-container>
     <hr/>
 
     {% if auth and "Upload" in auth.permissions %}

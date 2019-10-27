@@ -11,9 +11,15 @@ import org.jtwig.JtwigModel
 import org.jtwig.JtwigTemplate
 import java.io.ByteArrayOutputStream
 
-// TODO: replace with HttpInfo
+/**
+ * Base Http controller. Used to control what TinyJukebox is supposed to do when reaching a route
+ * @see TinyJukeboxRouter
+ */
 open class Controller(val httpInfo: HttpInfo) {
 
+    /**
+     * Session of the current client
+     */
     val session: Session get()= httpInfo.session
 
     /**

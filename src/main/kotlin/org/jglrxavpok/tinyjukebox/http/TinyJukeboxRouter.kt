@@ -16,6 +16,9 @@ import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaType
 
+/**
+ * Routes used by TinyJukebox
+ */
 private val routes = arrayOf(
     Route("play", "/play/{name}", emptyMap(), setOf(Method.POST), PlayController::play.asRouteHandler<PlayController>()),
 
@@ -47,6 +50,10 @@ private val routes = arrayOf(
     Route("quote", "/quote", emptyMap(), setOf(Method.GET), IndexController::quote.asRouteHandler<UserController>())
 )
 
+/**
+ * Response sent if a route has been reached but the underlying method does not correspond in terms of arguments.
+ * Path arguments and method arguments do not match (either in name or type)
+ */
 class IncompleteRouteResponse(
     val functionParameters: List<KParameter>,
     val params: Map<String, String>
@@ -58,13 +65,19 @@ class IncompleteRouteResponse(
     }
 }
 
+/**
+ * Converts a given controller method to a RouteHandler instance that will convert the parameters passed inside the URL
+ * and call the controller method with the converted parameters. Match done with parameters names
+ */
 private inline fun <reified T: Controller> KFunction<RouteResponse>.asRouteHandler(): RouteHandler {
     val owner = T::class
     val functionParameters = this.parameters.filter { it != this.instanceParameter }
     val function = this
     return object: RouteHandler {
         override fun invoke(context: Any, params: Map<String, String>): RouteResponse {
-            val controller = owner.primaryConstructor!!.call(context as HttpInfo)
+            val controller = owner.primaryConstructor!!.call(context as HttpInfo) // create a new controller instance for this session
+
+            // fill in the method arguments
             val filledParameters = mutableMapOf<KParameter, Any>()
             for(param in functionParameters) {
                 val value = params[param.name] ?: return IncompleteRouteResponse(functionParameters, params)
@@ -87,6 +100,11 @@ private inline fun <reified T: Controller> KFunction<RouteResponse>.asRouteHandl
     }
 }
 
+/**
+ * Router responsible of routing a path to the correct Controller.
+ * Attempts to read inside the classpath for static resources when none of the defined routes match.
+ * @see routes for a list of all routes
+ */
 object TinyJukeboxRouter: Router(RouteMatcher(*routes)) {
 
     /**
@@ -94,7 +112,7 @@ object TinyJukeboxRouter: Router(RouteMatcher(*routes)) {
      */
     private val rootPath = Paths.get("/")
 
-    private object StaticController: Controller(HttpInfo.empty())
+    private object StaticController: Controller(HttpInfo.createFake())
 
     fun get(path: String, context: HttpInfo): HttpResponse {
         val response = this.route(path, Method.GET, context)
@@ -103,7 +121,7 @@ object TinyJukeboxRouter: Router(RouteMatcher(*routes)) {
             val valid = newPath.startsWith(rootPath) // the path MUST be within the server
             if(!valid) {
                 println(">> Attempted to access invalid path outside of project $newPath - $rootPath")
-                return TextResponse("text/html", "403")
+                return TextResponse("text/html", "404")
             }
             return StaticController.serve(path)
         }

@@ -13,6 +13,9 @@ import org.jglrxavpok.tinyjukebox.templating.checkMusicExists
 import java.net.URLDecoder
 import java.time.LocalTime
 
+/**
+ * Controller responsible of serving music pages (index and music info)
+ */
 class MusicController(context: HttpInfo): Controller(context) {
 
     fun index(): RouteResponse {

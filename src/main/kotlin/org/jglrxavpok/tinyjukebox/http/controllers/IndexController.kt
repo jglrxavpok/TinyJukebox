@@ -6,6 +6,9 @@ import org.jglrxavpok.tinyjukebox.http.HttpInfo
 import org.jglrxavpok.tinyjukebox.http.TextResponse
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
 
+/**
+ * Controller responsible of the main index page and the quote API
+ */
 class IndexController(httpInfo: HttpInfo): Controller(httpInfo) {
 
     fun index(): RouteResponse {

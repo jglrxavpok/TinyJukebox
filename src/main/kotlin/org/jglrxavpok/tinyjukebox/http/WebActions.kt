@@ -22,6 +22,7 @@ import java.util.regex.Pattern
 /**
  * Object responsible to act when "/action/<some location>" is requested via a POST request
  */
+// TODO: Move everything to different controllers
 object WebActions {
 
     /**

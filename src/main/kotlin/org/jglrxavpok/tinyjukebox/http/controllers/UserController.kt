@@ -14,6 +14,9 @@ import org.jglrxavpok.tinyjukebox.templating.User
 import org.jglrxavpok.tinyjukebox.templating.checkUserExists
 import java.net.URLDecoder
 
+/**
+ * Controller responsible of serving user related pages (index and user info)
+ */
 class UserController(context: HttpInfo): Controller(context) {
 
     fun show(username: String): RouteResponse {

@@ -7,6 +7,9 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.io.PrintWriter
 
+/**
+ * Route Response that is a valid HTTP response
+ */
 open class HttpResponse(val errorCode: Int, val contentType: String = "text/html", vararg val headerParameters: String): RouteResponse {
 
     open fun write(outputStream: OutputStream, writer: PrintWriter) {
@@ -27,7 +30,10 @@ open class HttpResponse(val errorCode: Int, val contentType: String = "text/html
     }
 }
 
-class StaticResourceResponse(val mime: String, val inputStream: InputStream): HttpResponse(200, mime) {
+/**
+ * Route Response that is a valid HTTP response, with the body containing the static resource
+ */
+class StaticResourceResponse(mime: String, val inputStream: InputStream): HttpResponse(200, mime) {
 
     override fun write(outputStream: OutputStream, writer: PrintWriter) {
         super.write(outputStream, writer)
@@ -37,7 +43,10 @@ class StaticResourceResponse(val mime: String, val inputStream: InputStream): Ht
     }
 }
 
-class TextResponse(val mime: String, val text: String, errorCode: Int = 200): HttpResponse(errorCode, mime) {
+/**
+ * Route Response that is a valid HTTP response, with the body containing the given text
+ */
+class TextResponse(mime: String, val text: String, errorCode: Int = 200): HttpResponse(errorCode, mime) {
     override fun write(outputStream: OutputStream, writer: PrintWriter) {
         super.write(outputStream, writer)
         writer.println(text)

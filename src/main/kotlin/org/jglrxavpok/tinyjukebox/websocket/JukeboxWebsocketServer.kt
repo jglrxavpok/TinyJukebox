@@ -28,6 +28,7 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
         conn?.send("Welcome!")
         val encodedPublicKey = RSAPublicKey.encoded
         val publicKey64 = Base64.getEncoder().encodeToString(encodedPublicKey)
+        // it says PRIVATE but the public one is sent
         conn?.send("PublicKey\n-----BEGIN RSA PRIVATE KEY-----\n$publicKey64\n-----END RSA PRIVATE KEY-----")
         sendQueue(conn)
         println("client arrived!")

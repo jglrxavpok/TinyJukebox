@@ -1,0 +1,3 @@
+[submodule "k-router"]
+	path = k-router
+	url = https://github.com/jglrxavpok/k-router.git/

@@ -35,7 +35,10 @@ open class Controller(val context: HttpInfo) {
             if(session != Session.Anonymous) {
                 dataModel["auth"] = Auth(session.username, TJDatabase.getPermissions(session.username))
             }
-            dataModel["text"] = org.jglrxavpok.tinyjukebox.templating.Text(Config[Text.title])
+            dataModel["text"] = org.jglrxavpok.tinyjukebox.templating.Text()
+            dataModel["Timings"] = org.jglrxavpok.tinyjukebox.templating.Timings()
+            dataModel["Network"] = org.jglrxavpok.tinyjukebox.templating.Network()
+            dataModel["Security"] = org.jglrxavpok.tinyjukebox.templating.Security()
 
             val contentType = getMIME(pageName)
             return when {
@@ -53,22 +56,11 @@ open class Controller(val context: HttpInfo) {
                 }
                 else -> {
                     val text = resourceStream.reader().readText()
-                    TextResponse(contentType, applyVariables(text))
+                    TextResponse(contentType, text)
                 }
             }
         } catch (e: Exception) {
             throw RuntimeException("Error while serving $pageName", e)
-        }
-    }
-
-    private fun applyVariables(text: String): String {
-        return text.replace(Regex("___(?<VAR>.*?)___")) { result ->
-            val varName = result.groups["VAR"]
-            if(varName != null) {
-                Config.getFromProperties(varName.value)
-            } else {
-                result.toString()
-            }
         }
     }
 

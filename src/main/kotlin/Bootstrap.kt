@@ -1,19 +1,15 @@
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream
 import fr.gpotter2.SSLServerSocketKeystoreFactory
-import io.github.magdkudama.krouter.Method
-import io.github.magdkudama.krouter.Route
-import io.github.magdkudama.krouter.RouteMatcher
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory
 import org.jglrxavpok.tinyjukebox.*
 import org.jglrxavpok.tinyjukebox.auth.RSALoadKeyOrCreate
 import org.jglrxavpok.tinyjukebox.http.HttpHandler
-import org.jglrxavpok.tinyjukebox.http.HttpInfo
-import org.jglrxavpok.tinyjukebox.http.TinyJukeboxRouter
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.templating.TJDatabase
 import org.jglrxavpok.tinyjukebox.websocket.JukeboxWebsocketServer
 import org.jglrxavpok.tinyjukebox.websocket.QuoteThread
-import java.io.*
+import java.io.FileOutputStream
+import java.io.OutputStream
+import java.io.PrintStream
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import javax.net.ssl.SSLServerSocket
@@ -76,7 +72,7 @@ fun main() {
         socketFactory.createServerSocket(port) as SSLServerSocket
     } else {
         System.err.println("You are not using a secure connection! TinyJukebox always creates a RSA public/private key pair for communication but consider creating your own certificate and setting 'Security.useSSL' to true in the configuration file")
-        ServerSocket(Config[Network.httpsPort])
+        ServerSocket(Config[Network.httpPort])
     }
     httpSocket.reuseAddress = true
     websocket.isReuseAddr = true

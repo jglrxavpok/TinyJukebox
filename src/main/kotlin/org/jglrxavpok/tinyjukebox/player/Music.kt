@@ -5,4 +5,4 @@ package org.jglrxavpok.tinyjukebox.player
  */
 data class Music(val name: String, val source: MusicSource, val duration: Long) {
     constructor(source: MusicSource): this(source.fetchName(), source, source.computeDurationInMillis())
-} // TODO: sender?
+}

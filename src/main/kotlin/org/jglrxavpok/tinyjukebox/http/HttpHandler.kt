@@ -63,7 +63,7 @@ class HttpHandler(val client: Socket): Thread("HTTP Client $client") {
         val request = reader.readLine() ?: return htmlError(400)
         val parts = request.split(" ").dropLastWhile { it.isEmpty() }.toTypedArray()
         val type = parts[0]
-        val location = parts[1]
+        val location = parts[1].substringBefore("?") // drop GET arguments
         println("Received request $request")
         val attributes = readAttributes()
         val context = HttpInfo(writer, attributes["File-Length"]?.toLong() ?: -1, reader, client.getInputStream(), attributes, cookies, session)

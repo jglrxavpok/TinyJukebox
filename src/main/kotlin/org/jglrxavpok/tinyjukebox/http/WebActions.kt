@@ -57,16 +57,16 @@ object WebActions {
         ), // move the selected track at the head of the queue
         Action("playercontrol/movetoend", this::moveToEnd, Permissions.Move), // move the selected track at the bottom the queue
         Action("playercontrol/moveup", this::moveUp, Permissions.Move), // move the selected track up the queue
-        Action("playercontrol/movedown", this::moveDown, Permissions.Move), // move the selected track up the queue
-        Action("playercontrol/lock", this::lock, Permissions.Lock), // move the selected track up the queue
-        Action("playercontrol/unlock", this::unlock, Permissions.Lock), // move the selected track up the queue
+        Action("playercontrol/movedown", this::moveDown, Permissions.Move), // move the selected track down the queue
+        Action("playercontrol/lock", this::lock, Permissions.Lock),
+        Action("playercontrol/unlock", this::unlock, Permissions.Lock),
 
-        Action("login", Session.Companion::login), // move the selected track up the queue
-        Action("signup", Session.Companion::signup), // move the selected track up the queue
+        Action("login", Session.Companion::login),
+        Action("signup", Session.Companion::signup),
         Action(
             "logout",
             Session.Companion::logout
-        ) // move the selected track up the queue
+        )
     )
 
     private fun skip(httpInfo: HttpInfo) {

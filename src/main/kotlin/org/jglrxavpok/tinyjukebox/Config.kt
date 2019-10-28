@@ -79,6 +79,7 @@ object Timings: KeyGroup() {
 }
 
 object Network: KeyGroup() {
+    val httpPort = IntKey(8000)
     val httpsPort = IntKey(8080)
     val websocketPort = IntKey(8887)
 }

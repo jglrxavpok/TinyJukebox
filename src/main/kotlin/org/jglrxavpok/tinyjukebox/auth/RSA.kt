@@ -17,9 +17,6 @@ import javax.crypto.Cipher
 import kotlin.text.Charsets.UTF_8
 import java.util.Base64.getDecoder
 
-
-
-
 private lateinit var keypair: KeyPair
 val RSAPublicKey get() = keypair.public
 

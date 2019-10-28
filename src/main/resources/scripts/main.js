@@ -10,7 +10,7 @@ requirejs.config({
     paths: pathsObject
 });
 
-requirejs(['jquery', 'bootstrap', 'quote', 'config', 'about', 'messageHandler', 'youtube-search/search', 'playerControl', 'auth', 'reupload', 'vueapp'],
+requirejs(['jquery', 'bootstrap', 'quote', 'noext!scripts/config.js.twig', 'about', 'messageHandler', 'youtube-search/search', 'playerControl', 'auth', 'reupload', 'vueapp'],
 function   ($, bootstrap, quote, config, about, messageHandler, ytsearch, playerControl, auth, reupload, app) {
     $('.alert').alert();
 

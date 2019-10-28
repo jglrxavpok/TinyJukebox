@@ -18,7 +18,7 @@ object AuthChecker {
     fun checkAuth(callback: ((PrintWriter, BufferedReader, Session) -> Unit)?): (HttpInfo) -> Unit {
         return { httpInfo ->
             with(httpInfo) {
-                if(session.expired) {
+                if(!session.expired) {
                     writer.println("yes")
                     if(callback != null) {
                         callback(writer, clientReader, session)
@@ -39,16 +39,4 @@ object AuthChecker {
         }
     }
 
-    /**
-     * Gets the auth folder or generates it if needed
-     */
-    fun getOrMkdirAuthFolder(): File {
-        val folder = File("./auth")
-        if(!folder.exists())
-            folder.mkdir()
-        return folder
-    }
-
-    @ExperimentalUnsignedTypes // just to make it clear that the experimental unsigned types are used
-    fun ByteArray.toHexString() = asUByteArray().joinToString("") { it.toString(16).padStart(2, '0') }
 }

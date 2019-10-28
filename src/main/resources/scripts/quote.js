@@ -1,4 +1,4 @@
-define(["jquery", "config"], function($, config) {
+define(["jquery", "noext!scripts/config.js.twig"], function($, config) {
     var obj = {
         init: function() {
             var quoteRequest = new XMLHttpRequest();

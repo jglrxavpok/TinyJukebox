@@ -53,6 +53,7 @@ define(["jquery", "auth", 'playerControl'], function($, auth, playerControl) {
                         <th scope="col">#</th>
                         <th scope="col">Title</th>
                         <th scope="col">Duration</th>
+                        <th scope="col">Sender</th>
                         <th scope="col" v-if="showControls">Controls</th>
                     </tr>
                 </thead>
@@ -64,6 +65,7 @@ define(["jquery", "auth", 'playerControl'], function($, auth, playerControl) {
                         {{music.name}}
                     </td>
                     <td>{{music.duration}}</td>
+                    <td>{{music.uploader}}</td>
                     <td v-if="showControls" class="text-nowrap text-center">
                         <i v-if="auth.hasPermission('Lock')" class="fas lockMusic fa-3x clickable" :class="{ 'fa-lock': music.locked, 'fa-lock-open': !music.locked}" :data-index="index" :data-name="music.escapedName" :data-locked="music.locked"></i>
                         <i v-if="index !== 0 && ((auth.hasPermission('Move') && !music.locked) || auth.hasPermission('MoveLocked'))" class="fas fa-angle-double-up moveToStart fa-3x clickable" :data-index="index" :data-name="music.escapedName"></i>
@@ -77,7 +79,8 @@ define(["jquery", "auth", 'playerControl'], function($, auth, playerControl) {
                     <th scope="row">Total</th>
                     <td>{{ queue.length }} tracks</td>
                     <td>{{ queue.totalDuration }}</td>
-                    <td class="text-nowrap text-center" v-if="showControls">
+                    <td> - </td>
+                    <td v-if="showControls">
                         <button v-if="auth.hasPermission('EmptyQueue')" class="btn btn-danger" id="empty">
                             Clear queue
                         </button>

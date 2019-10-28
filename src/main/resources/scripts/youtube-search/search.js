@@ -46,7 +46,7 @@ define(['jquery', 'vueapp'], function($, app) {
                     var videoID = link.data("videoid");
 
                     var xhttp = new XMLHttpRequest();
-                    xhttp.open("POST", "/action/upload", true);
+                    xhttp.open("POST", "/upload", true);
                     xhttp.setRequestHeader("Content-Type", "application/octet-stream");
                     xhttp.setRequestHeader("File-Source", "Youtube");
                     $('#ytModal').modal('hide');

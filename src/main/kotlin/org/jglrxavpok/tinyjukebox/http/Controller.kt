@@ -4,7 +4,6 @@ import org.jglrxavpok.tinyjukebox.Config
 import org.jglrxavpok.tinyjukebox.Debug
 import org.jglrxavpok.tinyjukebox.Text
 import org.jglrxavpok.tinyjukebox.auth.Session
-import org.jglrxavpok.tinyjukebox.exceptions.InvalidSessionException
 import org.jglrxavpok.tinyjukebox.templating.Auth
 import org.jglrxavpok.tinyjukebox.templating.TJDatabase
 import org.jtwig.JtwigModel
@@ -15,12 +14,12 @@ import java.io.ByteArrayOutputStream
  * Base Http controller. Used to control what TinyJukebox is supposed to do when reaching a route
  * @see TinyJukeboxRouter
  */
-open class Controller(val httpInfo: HttpInfo) {
+open class Controller(val context: HttpInfo) {
 
     /**
      * Session of the current client
      */
-    val session: Session get()= httpInfo.session
+    val session: Session get()= context.session
 
     /**
      * Sends a given page or sends a 404 error

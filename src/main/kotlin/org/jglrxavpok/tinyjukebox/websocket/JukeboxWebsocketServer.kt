@@ -72,6 +72,7 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
             jsonObj.addProperty("title", music.name)
             jsonObj.addProperty("duration", music.duration)
             jsonObj.addProperty("locked", musicEntry.locked)
+            jsonObj.addProperty("uploader", musicEntry.uploader)
             message.append(jsonObj.toString())
         }
         return message.toString()

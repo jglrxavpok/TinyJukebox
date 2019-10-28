@@ -1,5 +1,7 @@
 package org.jglrxavpok.tinyjukebox
 
+import org.jglrxavpok.tinyjukebox.http.TinyJukeboxRouter
+import org.jglrxavpok.tinyjukebox.http.TinyJukeboxRoutes
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import kotlin.system.exitProcess
 
@@ -21,6 +23,13 @@ object Commands {
             }
             "stop" -> {
                 exitProcess(0)
+            }
+            "routes" -> {
+                println("--- Routes ---")
+                for(route in TinyJukeboxRoutes) {
+                    println("${route.path} => ${route.name}")
+                }
+                println("--------------")
             }
             else -> println("Invalid command ${parts.joinToString(" ")}")
         }

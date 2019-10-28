@@ -117,6 +117,10 @@ class Session(val id: UUID, val username: String, val expirementDate: Long) {
         return System.currentTimeMillis() >= expirementDate
     }
 
+    fun checkPermissions(vararg permissions: Permissions) {
+        checkPermissions(listOf(*permissions))
+    }
+
     fun checkPermissions(permissions: List<Permissions>) {
         val userPermissions = TJDatabase.getPermissions(username)
         if( ! userPermissions.containsAll(permissions)) {

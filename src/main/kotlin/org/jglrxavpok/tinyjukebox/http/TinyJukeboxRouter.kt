@@ -2,10 +2,7 @@ package org.jglrxavpok.tinyjukebox.http
 
 import io.github.magdkudama.krouter.*
 import io.github.magdkudama.krouter.Router
-import org.jglrxavpok.tinyjukebox.http.controllers.IndexController
-import org.jglrxavpok.tinyjukebox.http.controllers.MusicController
-import org.jglrxavpok.tinyjukebox.http.controllers.PlayController
-import org.jglrxavpok.tinyjukebox.http.controllers.UserController
+import org.jglrxavpok.tinyjukebox.http.controllers.*
 import java.io.OutputStream
 import java.io.PrintWriter
 import java.nio.file.Paths
@@ -19,13 +16,31 @@ import kotlin.reflect.jvm.javaType
 /**
  * Routes used by TinyJukebox
  */
-private val routes = arrayOf(
+val TinyJukeboxRoutes = arrayOf(
     Route("play", "/play/{name}", emptyMap(), setOf(Method.POST), PlayController::play.asRouteHandler<PlayController>()),
+
+    // TODO: break into routes for each available music source (YT, Local, Soundcloud, etc.)
+    Route("upload", "/upload", emptyMap(), setOf(Method.POST), UploadController::upload.asRouteHandler<UploadController>()),
 
     // TODO: simplify
     Route("action", "/action/{name}", mapOf("name" to "\\w+"), setOf(Method.POST), object: RouteHandler {
         override fun invoke(context: Any, params: Map<String, String>): RouteResponse {
             val action = params["name"]!!
+            if(WebActions.isValidAction(action)) {
+                return object: HttpResponse(200) {
+                    override fun write(outputStream: OutputStream, writer: PrintWriter) {
+                        super.write(outputStream, writer)
+                        WebActions.perform(context as HttpInfo, action)
+                    }
+                }
+            } else {
+                throw RouteNotFoundException("Action '$action' does not exist")
+            }
+        }
+    }),
+    Route("playercontrol_action", "/action/playercontrol/{name}", mapOf("name" to "\\w+"), setOf(Method.POST), object: RouteHandler {
+        override fun invoke(context: Any, params: Map<String, String>): RouteResponse {
+            val action = "playercontrol/${params["name"]!!}"
             if(WebActions.isValidAction(action)) {
                 return object: HttpResponse(200) {
                     override fun write(outputStream: OutputStream, writer: PrintWriter) {
@@ -105,7 +120,7 @@ private inline fun <reified T: Controller> KFunction<RouteResponse>.asRouteHandl
  * Attempts to read inside the classpath for static resources when none of the defined routes match.
  * @see routes for a list of all routes
  */
-object TinyJukeboxRouter: Router(RouteMatcher(*routes)) {
+object TinyJukeboxRouter: Router(RouteMatcher(*TinyJukeboxRoutes)) {
 
     /**
      * Path representing the root of the music folder

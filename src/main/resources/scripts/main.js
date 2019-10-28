@@ -47,7 +47,7 @@ function   ($, bootstrap, quote, config, about, messageHandler, ytsearch, player
         xhttp.upload.addEventListener("error", transferFailed, false);
         xhttp.upload.addEventListener("abort", transferCanceled, false);
 
-        xhttp.open("POST", "/action/"+id, true);
+        xhttp.open("POST", "/"+id, true);
 
         var transferDiv = document.getElementById("transferProgress");
         // downloading

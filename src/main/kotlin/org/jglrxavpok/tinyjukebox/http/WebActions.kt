@@ -26,13 +26,6 @@ import java.util.regex.Pattern
 object WebActions {
 
     /**
-     * Regex Pattern used to extract information from the Youtube search results page
-     */
-    val pattern = Pattern.compile(
-        "<span class=\"video-time\".+?(?=>)>(?<DURATION>.*?)<\\/span><\\/span><\\/div><\\/a>(.|\\n)+?(?=<\\/span><\\/li><\\/ul><\\/button>)<\\/span><\\/li><\\/ul><\\/button>(.|\\n)*?(?=<div class=\"yt-lockup-content\")<div class=\"yt-lockup-content\">.*?href=\"\\/watch\\?v=(?<ID>.*?)\".*?title=\"(?<NAME>.*?)\".*?<a href=\"\\/(user|channel)\\/.+?\" class=\"yt-uix-sessionlink.*?>(?<CHANNEL>.*?)<"
-    )
-
-    /**
      * An action
      */
     open class Action(val id: String,
@@ -46,7 +39,6 @@ object WebActions {
      * List of all actions supported by TinyJukebox
      */
     val actionList = listOf(
-        Action("upload", this::upload, Permissions.Upload), // upload a local or a youtube link
         Action("auth", AuthChecker.checkAuth(null)), // check authenfication
         Action(
             "playercontrol/empty",
@@ -228,102 +220,6 @@ object WebActions {
                 }
             }
         }
-    }
-
-    /**
-     * Generates the JSON sent to the client that requested a Youtube search
-     * Contains the name, video id, channel and duration of results
-     */
-    private fun createAnswerJson(text: String): JsonArray {
-        val array = JsonArray()
-        val parts = text.split("/a></div><div class=\"yt-lockup-meta \"")
-        for(p in parts) {
-            val matcher = pattern.matcher(p)
-            while(matcher.find()) {
-                val title = matcher.group("NAME").toByteArray().toString(Charsets.UTF_8)
-                val id = matcher.group("ID").toByteArray().toString(Charsets.UTF_8)
-                val channel = matcher.group("CHANNEL").toByteArray().toString(Charsets.UTF_8)
-                val duration = matcher.group("DURATION").toByteArray().toString(Charsets.UTF_8)
-
-                val videoObj = JsonObject()
-                videoObj.addProperty("title", title)
-                videoObj.addProperty("id", id)
-                videoObj.addProperty("channel", channel)
-                videoObj.addProperty("duration", duration)
-
-                array.add(videoObj)
-            }
-        }
-        return array
-    }
-
-    private fun upload(httpInfo: HttpInfo) {
-        with(httpInfo) {
-            val fileSource = attributes["File-Source"]
-            val music: Music? = when(fileSource) {
-                "Local" -> uploadLocal(clientReader, attributes)
-                "Youtube" -> uploadYoutube(clientReader, attributes)
-                else -> null
-            }
-            music?.let {
-                TJDatabase.onMusicUpload(session, music)
-                TinyJukebox.addToQueue(it)
-            }
-        }
-    }
-
-    /**
-     * Download a file sent by the client.
-     * The file is encoded in Base64 and sent via 'clientReader'
-     */
-    private fun uploadLocal(clientReader: BufferedReader, attributes: Map<String, String>): Music? {
-        val filename = attributes["File-Name"]
-        if(filename == null) {
-            TinyJukebox.sendError(IllegalArgumentException("No file name ?! Are you trying to break me ?! >:("))
-            return null
-        }
-
-        // verifies that the client is not trying to access invalid files (eg by trying to access files in '../')
-        val root = Paths.get("music/").toAbsolutePath()
-        val localFilePath = Paths.get("music/$filename").toAbsolutePath()
-        val f = localFilePath.toFile()
-        if(!f.canonicalPath.startsWith(root.toFile().canonicalPath)) {
-            println("[ERROR uploadLocal] Tried to play invalid file at $localFilePath")
-            TinyJukebox.sendError(IllegalArgumentException("Invalid file location, are you trying to break me ? :("))
-            return null
-        }
-        val file = File("./music/$filename")
-        if(file.isDirectory) {
-            TinyJukebox.sendError(IllegalArgumentException("Invalid file location, that's a directory"))
-            return null
-        }
-        if(!file.parentFile.exists()) {
-            file.parentFile.mkdirs() // TODO check error
-        }
-
-        // saves the downloaded file
-        val target = BufferedOutputStream(FileOutputStream(file))
-        val line = clientReader.readLine()
-        val input = Base64.getMimeDecoder().decode(line.substringAfter(";base64,"))
-        target.write(input)
-        target.flush()
-        target.close()
-
-        val source = FileSource(file)
-        return Music(
-            file.nameWithoutExtension,
-            source,
-            source.computeDurationInMillis()
-        )
-    }
-
-    private fun uploadYoutube(clientReader: BufferedReader, attributes: Map<String, String>): Music? {
-        // simply create the source from the given url
-        val url = clientReader.readLine()
-        if(url.isBlank()) {
-            return null
-        }
-        return Music(YoutubeSource(url))
     }
 
     /**

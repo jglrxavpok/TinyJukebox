@@ -26,7 +26,7 @@ class PlayController(httpInfo: HttpInfo): Controller(httpInfo) {
         if(exists) {
             val musicObj = TJDatabase.getSavedMusic(music)
             TJDatabase.onMusicUpload(session, musicObj)
-            TinyJukebox.addToQueue(musicObj)
+            TinyJukebox.addToQueue(musicObj, session.username)
             return HttpResponse(200)
         } else {
             throw RouteNotFoundException("No music $music")

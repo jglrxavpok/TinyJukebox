@@ -25,7 +25,7 @@ define(['jquery', 'auth'], function($, auth) {
 
         sendEmptyRequest: function(sessionID) {
             var xhttp = new XMLHttpRequest();
-            xhttp.open("POST", "/action/playerControl/empty", true);
+            xhttp.open("POST", "/action/playercontrol/empty", true);
             xhttp.onload = function() {
                 var text = xhttp.responseText;
                 if(text.indexOf('no') !== -1) {
@@ -48,7 +48,7 @@ define(['jquery', 'auth'], function($, auth) {
         sendMusicControlRequestSupplier: function(name, index, action) {
             return function(sessionID) {
                 var xhttp = new XMLHttpRequest();
-                xhttp.open("POST", "/action/playerControl/"+action, true);
+                xhttp.open("POST", "/action/playercontrol/"+action, true);
                 xhttp.onload = function () {
                     var text = xhttp.responseText;
                     if(text.indexOf('no') !== -1) {

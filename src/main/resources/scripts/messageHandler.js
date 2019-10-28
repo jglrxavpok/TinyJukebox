@@ -18,7 +18,7 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch,
                     var musicObj = JSON.parse(lines[i]);
                     var duration = numeral(musicObj.duration/1000).format('00:00:00');
                     totalTime += musicObj.duration;
-                    app.queue.push(app.Music(musicObj.title, duration, 'TODO: Uploader', musicObj.locked)); // TODO: Uploader
+                    app.queue.push(app.Music(musicObj.title, duration, musicObj.uploader, musicObj.locked));
                 }
                 var totalDurationStr = numeral(totalTime/1000).format('00:00:00');
                 app.queue.totalDuration = totalDurationStr;

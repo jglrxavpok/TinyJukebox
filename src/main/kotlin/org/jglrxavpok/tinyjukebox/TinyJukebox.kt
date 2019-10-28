@@ -29,9 +29,9 @@ object TinyJukebox {
     /**
      * Adds a music to the queue and send a update to clients
      */
-    fun addToQueue(music: Music) {
+    fun addToQueue(music: Music, uploader: String) {
         performChangesToQueue {
-            add(MusicEntry(music, false))
+            add(MusicEntry(music, false, uploader))
             sendQueueUpdate()
         }
     }

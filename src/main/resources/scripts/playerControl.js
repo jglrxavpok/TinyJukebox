@@ -1,6 +1,8 @@
 define(['jquery', 'auth'], function($, auth) {
     var alertContainer = $("#alertContainer");
     var playerControl = {
+        websocket: undefined,
+
         sendSkipRequest: function(sessionID) {
             var xhttp = new XMLHttpRequest();
             xhttp.open("POST", "/action/playercontrol/skip", true);
@@ -112,6 +114,14 @@ define(['jquery', 'auth'], function($, auth) {
     Vue.nextTick(function() {
         $('#skipButton').on('click', function() {
             auth.requestAuth(playerControl.sendSkipRequest);
+        });
+    });
+
+    Vue.nextTick(function() {
+        var slider = $('#volume-control');
+        slider.on('input', function() {
+            var value = slider.val();
+            playerControl.websocket.send("Volume\n"+value+"\n");
         });
     });
     return playerControl;

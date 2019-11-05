@@ -24,6 +24,7 @@ function   ($, bootstrap, quote, config, about, messageHandler, ytsearch, player
     }
     var socket = new WebSocket(`${socketProtocol}://${window.location.hostname}:${config.websocketPort}`);
     ytsearch.websocket = socket;
+    playerControl.websocket = socket;
     console.log("Socket addr is "+`${socketProtocol}://${window.location.hostname}:${config.websocketPort}`);
 
     socket.onopen = function (ev) {

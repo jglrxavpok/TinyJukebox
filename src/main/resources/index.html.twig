@@ -10,7 +10,16 @@
         <div class="text-center" id="alertContainer">
         </div>
     </div>
-    <playing-container :player-state="playerState"></playing-container>
+    <div class="full-width">
+        <playing-container :player-state="playerState"></playing-container>
+        {% if "ChangeVolume" in auth.permissions %}
+            <div class="text-center">
+                <i class="align-middle fas fa-volume-down fa-2x text-white"></i>
+                <input type="range" id="volume-control" :value="playerState.volume" min="0" max="100" class="align-middle volume-slider">
+                <i class="align-middle fas fa-volume-up fa-2x text-white"></i>
+            </div>
+        {% endif %}
+    </div>
     {% if "Skip" in auth.permissions %}
         <div class="text-center">
             <button class="btn btn-danger btn-lg" role="button" id="skipButton">Skip !</button>

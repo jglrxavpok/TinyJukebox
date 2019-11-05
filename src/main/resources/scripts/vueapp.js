@@ -105,6 +105,7 @@ define(["jquery", "auth", 'playerControl'], function($, auth, playerControl) {
                 hasMusic: false,
                 currentTime: "0:00",
                 percent: 10,
+                volume: 0.0,
             },
             queue: [],
             auth: auth,

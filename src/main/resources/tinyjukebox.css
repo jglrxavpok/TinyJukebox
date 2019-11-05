@@ -74,3 +74,7 @@
     font-weight: 300;
     line-height: 1.2;
 }
+
+.full-width {
+    width: 100%;
+}

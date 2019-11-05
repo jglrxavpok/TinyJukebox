@@ -5,16 +5,18 @@ import com.google.gson.JsonParser
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
+import org.jglrxavpok.tinyjukebox.Config
+import org.jglrxavpok.tinyjukebox.Playback
 import org.jglrxavpok.tinyjukebox.TinyJukebox
+import org.jglrxavpok.tinyjukebox.auth.Permissions
 import org.jglrxavpok.tinyjukebox.auth.RSAPublicKey
 import org.jglrxavpok.tinyjukebox.auth.Session
+import org.jglrxavpok.tinyjukebox.player.MusicPlayer
+import org.jglrxavpok.tinyjukebox.templating.TJDatabase
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.lang.Exception
-import java.lang.StringBuilder
 import java.net.InetSocketAddress
 import java.util.*
-import java.util.Base64.getEncoder
 import kotlin.concurrent.thread
 
 /**
@@ -25,7 +27,7 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
     private val clientsConnected = hashSetOf<String>()
 
     override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) {
-        conn?.send("Welcome!")
+        conn?.send("volume\n${MusicPlayer.volume}\n")
         val encodedPublicKey = RSAPublicKey.encoded
         val publicKey64 = Base64.getEncoder().encodeToString(encodedPublicKey)
         // it says PRIVATE but the public one is sent
@@ -121,6 +123,20 @@ class JukeboxWebsocketServer(address: InetSocketAddress): WebSocketServer(addres
                             conn!!.send("ytsearch\n$query\n$response\n")
                         }
                         reader.close()
+                    }
+                }
+
+                message.startsWith("Volume") -> {
+                    val username = conn?.getAttachment<String>()
+                    val permissions = TJDatabase.getPermissions(username!!)
+                    if(Permissions.ChangeVolume in permissions) {
+                        val volume = message.split("\n")[1].toFloat()/100f
+                        println("Setting volume to $volume")
+                        MusicPlayer.volume = volume
+                        Config[Playback.volume] = volume
+                        Config.save()
+                    } else {
+
                     }
                 }
 

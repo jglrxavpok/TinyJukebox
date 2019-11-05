@@ -15,11 +15,10 @@ object Config {
     private val settingsFile = File("./config.cfg")
     private val properties = Properties()
 
-    private val groups = listOf(Paths, Timings, Network, Text, Security, DatabaseConfig, Debug)
+    private val groups = listOf(Paths, Timings, Network, Text, Security, DatabaseConfig, Debug, Playback)
+    private val comments = "TinyJukebox configurations"
 
     fun load() {
-        val comments = "TinyJukebox configurations"
-
         if( ! settingsFile.exists()) {
             settingsFile.createNewFile()
 
@@ -34,6 +33,14 @@ object Config {
 
         groups.forEach { it.load(properties) }
 
+        val output = settingsFile.outputStream()
+        groups.forEach { it.save(properties) }
+        properties.store(output, comments)
+        output.flush()
+        output.close()
+    }
+
+    fun save() {
         val output = settingsFile.outputStream()
         groups.forEach { it.save(properties) }
         properties.store(output, comments)
@@ -69,6 +76,10 @@ object Paths: KeyGroup() {
 object DatabaseConfig: KeyGroup() {
     val url = StringKey("jdbc:sqlite:db.bin")
     val driver = StringKey("org.sqlite.JDBC")
+}
+
+object Playback: KeyGroup() {
+    val volume = FloatKey(1f)
 }
 
 object Timings: KeyGroup() {

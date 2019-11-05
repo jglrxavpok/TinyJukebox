@@ -88,3 +88,44 @@
 .upload-pill {
     color: var(--niceWhite);
 }
+
+.volume-slider {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 75%; /* Full-width */
+    height: 15px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    border-radius: 4px;
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 20px; /* Set a specific slider handle width */
+    height: 20px; /* Slider handle height */
+    background: #4CAF50; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+    transition: width .2s, height .2s;
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 20px; /* Set a specific slider handle width */
+    height: 20px; /* Slider handle height */
+    background: #4CAF50; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+    transition: width .2s, height .2s;
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+}
+
+.volume-slider::-moz-range-thumb:hover {
+    width: 25px;
+    height: 25px;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+    width: 25px;
+    height: 25px;
+}

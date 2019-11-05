@@ -1,12 +1,11 @@
 package org.jglrxavpok.tinyjukebox.player
 
+import org.jglrxavpok.tinyjukebox.Config
+import org.jglrxavpok.tinyjukebox.Playback
 import org.jglrxavpok.tinyjukebox.TinyJukebox
 import java.io.BufferedInputStream
 import java.io.InputStream
-import javax.sound.sampled.AudioSystem
-import javax.sound.sampled.AudioFormat
-import javax.sound.sampled.SourceDataLine
-import javax.sound.sampled.DataLine
+import javax.sound.sampled.*
 
 /**
  * Current state of the MusicPlayer thread
@@ -56,6 +55,7 @@ class State(var currentMusic: Music? = null, var format: AudioFormat? = null) {
  */
 object MusicPlayer: Thread("Music Player") {
 
+    var volume: Float = 1f
     /**
      * Number of bytes read in the current audio stream (used to compute current position)
      */
@@ -73,6 +73,8 @@ object MusicPlayer: Thread("Music Player") {
     internal var debugInfo = "unitialized"
 
     override fun run() {
+        volume = Config[Playback.volume]
+
         while(!Thread.currentThread().isInterrupted) {
             debugInfo = "polling queue"
             val musicEntry = TinyJukebox.pollQueue()
@@ -117,7 +119,13 @@ object MusicPlayer: Thread("Music Player") {
                     println(">> Playing ${music.name} / ${music.source}")
                     println(">> Format is ${din.format} ${din.format.frameRate} - ${din.format.frameSize}")
 
+                    val gainControl = sourceDataLine.getControl(FloatControl.Type.MASTER_GAIN) as FloatControl
                     do {
+                        val min = gainControl.minimum
+                        val range = gainControl.maximum - min
+                        val gain = volume * range + min
+                        gainControl.value = gain
+
                         val cnt: Int
                         try {
                             debugInfo = "reading from input"
@@ -203,4 +211,5 @@ object MusicPlayer: Thread("Music Player") {
             (frame / state.format!!.frameRate * 1000.0).toLong() // in milliseconds
         } else -1
     }
+
 }

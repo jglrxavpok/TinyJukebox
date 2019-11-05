@@ -82,6 +82,14 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch,
                 }
                 connectedListContainer.html(html);
                 break;
+
+            }
+
+            case "volume": {
+                app.playerState.volume = lines[1]*100;
+                console.log(lines[1]);
+                console.log("Initial volume: "+app.playerState.volume);
+                break;
             }
 
             default:

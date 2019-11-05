@@ -13,13 +13,12 @@ define(["jquery", "auth", 'playerControl'], function($, auth, playerControl) {
                             {{ playerState.name }}
                         </div>
                         </h3></p>
-                        <div class="d-flex justify-content-between">
-                            <div>00:00:00</div>
-                            <div>{{ playerState.duration }}</div>
-                        </div>
                         <div class="progress">
-                          <div class="progress-bar bg-success" role="progressbar" :style="{ width: playerState.percent + '%' }" :aria-valuenow="playerState.percent" aria-valuemin="0" aria-valuemax="100">
+                          <div class="progress-bar bg-success text-left" role="progressbar" :style="{ width: playerState.percent + '%' }" :aria-valuenow="playerState.percent" aria-valuemin="0" aria-valuemax="100">
                             {{ playerState.currentTime }}
+                          </div>
+                          <div class="progress-bar bg-light text-right text-black-50" role="progressbar" :style="{ width: (100-playerState.percent) + '%' }" :aria-valuenow="100-playerState.percent" aria-valuemin="0" aria-valuemax="100">
+                            {{ playerState.remaining }}
                           </div>
                         </div>
                     </div>
@@ -101,6 +100,7 @@ define(["jquery", "auth", 'playerControl'], function($, auth, playerControl) {
             playerState: {
                 name: "<none>",
                 duration: "0:00",
+                remaining: "0:00",
                 loading: false,
                 hasMusic: false,
                 currentTime: "0:00",

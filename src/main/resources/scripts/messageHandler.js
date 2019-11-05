@@ -31,6 +31,7 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch,
                     var name = lines[2];
                     var currentTime = numeral(lines[3]/1000).format('00:00:00');
                     var totalTime = numeral(lines[4]/1000).format('00:00:00');
+                    var remainingTime = numeral((lines[4]-lines[3])/1000).format('00:00:00');
                     document.title="♪ TinyJukebox - "+name+` (${totalTime})`;
                     var percent = Math.round(lines[5]*1000)/10;
                     var isLoading = lines[6];
@@ -39,6 +40,7 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch,
                     app.playerState.name = name;
                     app.playerState.percent = percent;
                     app.playerState.duration = totalTime;
+                    app.playerState.remaining = remainingTime;
                     app.playerState.currentTime = currentTime;
                 } else {
                     document.title="TinyJukebox";

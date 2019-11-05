@@ -32,20 +32,51 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Log in</h5>
+                    <h5 class="modal-title">Log in / Sign up</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <label for="authUsername">Username</label>
-                    <input type="text" class="form-control" id="authUsername" />
-                    <label for="authPassword">Password</label>
-                    <input type="password" class="form-control" id="authPassword" />
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-primary" type="button" id="loginButton">Log in</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="login-tab" data-toggle="tab" href="#login" role="tab" aria-controls="login" aria-selected="true"><h5 class="display-5">Log in</h5></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="register-tab" data-toggle="tab" href="#register" role="tab" aria-controls="register" aria-selected="false"><h5 class="display-5">Register</h5></a>
+                    </li>
+                </ul>
+                <div class="tab-content" id="modalTabs">
+                    <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+                        <div class="modal-body">
+                            <label for="authUsername">Username</label>
+                            <input type="text" class="form-control" id="authUsername" />
+                            <label for="authPassword">Password</label>
+                            <input type="password" class="form-control" id="authPassword" />
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-primary" type="button" id="loginButton">Log in</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" role="tabpanel" aria-labelledby="register-tab" id="register">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="authUsername">Username</label>
+                                <input type="text" class="form-control" id="signupUsername" placeholder="Enter username">
+                            </div>
+                            <div class="form-group">
+                                <label for="authPassword">Password</label>
+                                <input type="password" class="form-control" id="signupPassword" placeholder="Enter password">
+                                <label for="authPassword">Confirm Password</label>
+                                <input type="password" class="form-control" id="signupPasswordConfirm" placeholder="Confirm password">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="signupButton" class="btn btn-primary" disabled>Sign up</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

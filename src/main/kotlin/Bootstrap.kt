@@ -100,8 +100,11 @@ fun main() {
 
     // accept commands
     while(true) {
-        val line = readLine()!!
-        val parts = line.trim().split(" ")
-        Commands.execute(parts)
+        val line = readLine()
+        if(line != null) {
+            val parts = line.trim().split(" ")
+            Commands.execute(parts)
+        }
+        Thread.sleep(10)
     }
 }

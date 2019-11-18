@@ -134,7 +134,7 @@ object TinyJukebox {
             if(currentlyPlaying) {
                 val duration = currentMusic!!.duration
                 val percent = position!!.toDouble()/duration.toDouble()
-                websocket.sendPlayerUpdate(true, playerState.currentMusic!!.name, position, duration, percent, playerState.isLoading)
+                websocket.sendPlayerUpdate(true, playerState.currentMusic!!.name, position, duration, percent, playerState.isLoading, playerState.isLocked)
             } else {
                 // not playing anything
                 websocket.sendPlayerUpdate(false)

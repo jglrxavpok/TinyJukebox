@@ -10,6 +10,7 @@ enum class Permissions {
     Move,
     MoveLocked,
     Skip,
+    SkipLocked,
     Ban,
     ChangeAdmins,
     ChangeVolume

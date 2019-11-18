@@ -10,6 +10,7 @@ define(["jquery", "auth", 'playerControl'], function($, auth, playerControl) {
                             <div class="d-inline"><div class="loadingIcon d-inline-block">\u231B</div> Loading</div>
                         </div>
                         <div v-else>
+                            <i v-if="playerState.locked" class="fas fa-lock"></i>
                             {{ playerState.name }}
                         </div>
                         </h3></p>
@@ -106,6 +107,7 @@ define(["jquery", "auth", 'playerControl'], function($, auth, playerControl) {
                 currentTime: "0:00",
                 percent: 10,
                 volume: 0.0,
+                locked: false,
             },
             queue: [],
             auth: auth,

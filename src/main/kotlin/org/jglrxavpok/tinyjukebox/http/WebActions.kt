@@ -7,6 +7,7 @@ import org.jglrxavpok.tinyjukebox.TinyJukebox
 import org.jglrxavpok.tinyjukebox.auth.AuthChecker
 import org.jglrxavpok.tinyjukebox.auth.Permissions
 import org.jglrxavpok.tinyjukebox.auth.Session
+import org.jglrxavpok.tinyjukebox.exceptions.UserNotPermittedException
 import org.jglrxavpok.tinyjukebox.player.FileSource
 import org.jglrxavpok.tinyjukebox.player.MusicPlayer
 import org.jglrxavpok.tinyjukebox.player.YoutubeSource
@@ -70,6 +71,10 @@ object WebActions {
     )
 
     private fun skip(httpInfo: HttpInfo) {
+        val skipPermission = if(MusicPlayer.state.isLocked) Permissions.SkipLocked else Permissions.Skip
+        if(skipPermission !in TJDatabase.getPermissions(httpInfo.session.username)) {
+            throw UserNotPermittedException(listOf(skipPermission))
+        }
         MusicPlayer.skip()
         MusicPlayer.state.currentMusic?.let {
             TJDatabase.onMusicSkip(it.name)

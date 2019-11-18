@@ -12,6 +12,7 @@ import javax.sound.sampled.*
  */
 class State(var currentMusic: Music? = null, var format: AudioFormat? = null) {
     var isLoading: Boolean = false
+    var isLocked = false
 
     companion object {
         val nullSource = object: MusicSource {
@@ -36,10 +37,12 @@ class State(var currentMusic: Music? = null, var format: AudioFormat? = null) {
 
     fun setPlaying(
         music: Music?,
-        format: AudioFormat?
+        format: AudioFormat?,
+        locked: Boolean
     ) {
         this.currentMusic = music
         this.format = format
+        this.isLocked = locked
         isLoading = false
     }
 
@@ -78,6 +81,7 @@ object MusicPlayer: Thread("Music Player") {
         while(!Thread.currentThread().isInterrupted) {
             debugInfo = "polling queue"
             val musicEntry = TinyJukebox.pollQueue()
+            val isLocked = musicEntry?.locked ?: false
             try {
                 if(musicEntry != null) {
                     debugInfo = "loading music"
@@ -115,7 +119,7 @@ object MusicPlayer: Thread("Music Player") {
                     val buffer = ByteArray(1024*8)
                     bytesRead = 0
 
-                    state.setPlaying(music, din.format)
+                    state.setPlaying(music, din.format, isLocked)
                     println(">> Playing ${music.name} / ${music.source}")
                     println(">> Format is ${din.format} ${din.format.frameRate} - ${din.format.frameSize}")
 
@@ -159,7 +163,7 @@ object MusicPlayer: Thread("Music Player") {
                     din.close()
                     debugInfo = "cleaning up"
 
-                    state.setPlaying(null, null)
+                    state.setLoadingState()
                     bytesRead = 0
 
                     debugInfo = "reset"
@@ -170,7 +174,7 @@ object MusicPlayer: Thread("Music Player") {
             } catch (e: Exception) {
                 TinyJukebox.sendError(e)
                 e.printStackTrace()
-                state.setPlaying(null, null)
+                state.setLoadingState()
             }
 
             debugInfo = "polling queue"

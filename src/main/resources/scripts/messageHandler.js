@@ -42,6 +42,7 @@ function($, bootstrap, playerControl, auth, quote, numeral, miniQueue, ytsearch,
                     app.playerState.duration = totalTime;
                     app.playerState.remaining = remainingTime;
                     app.playerState.currentTime = currentTime;
+                    app.playerState.locked = lines[7] === "true";
                 } else {
                     document.title="TinyJukebox";
                     app.playerState.hasMusic = false;
